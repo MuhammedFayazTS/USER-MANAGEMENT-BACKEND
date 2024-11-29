@@ -11,6 +11,12 @@ const appConfig = () => ({
     JWT_REFRESH_SECRET: getEnv("JWT_REFRESH_SECRET"),
     JWT_REFRESH_EXPIRES_IN: getEnv("JWT_REFRESH_EXPIRES_IN", "30d"),
   },
+  DB:{
+    DB_USERNAME: getEnv("DB_USERNAME"),
+    DB_PASSWORD: getEnv("DB_PASSWORD"),
+    DB: getEnv("DB"),
+    DB_HOST: getEnv("DB_HOST"),
+  }
 });
 
 export const config = appConfig();

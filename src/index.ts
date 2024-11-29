@@ -4,6 +4,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { config } from "./config/app.config";
 
+// Import models and database
+import db from "./database/database";
+
 const app = express();
 const BASE_PATH = config.BASE_PATH;
 
@@ -23,6 +26,7 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.listen(config.PORT, () => {
+app.listen(config.PORT, async () => {
   console.log(`Server listening on port ${config.PORT}`);
+  await db.connectDB();
 });
