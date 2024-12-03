@@ -9,14 +9,14 @@ export const registerSchema = z
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: passwordSchema,
-    userAgent: z.string().optional(),
   })
   .refine((val) => val.password === val.confirmPassword, {
     message: "Password does not match",
     path: ["confirmPassword"],
   });
-
-export const loginSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
+  
+  export const loginSchema = z.object({
+    email: emailSchema,
+    password: passwordSchema,
+    userAgent: z.string().optional(),
 });

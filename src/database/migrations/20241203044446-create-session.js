@@ -23,7 +23,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      expiredAt: {
+      expiresAt: {
         type: Sequelize.DATE,
         required: true,
       },
@@ -31,6 +31,10 @@ module.exports = {
         type: Sequelize.DATE,
         required: true,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
       },
     });
   },

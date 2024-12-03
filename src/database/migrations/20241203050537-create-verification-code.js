@@ -30,7 +30,7 @@ module.exports = {
         allowNull: false,
         defaultValue: "PASSWORD_RESET",
       },
-      expiredAt: {
+      expiresAt: {
         type: Sequelize.DATE,
         allowNull: false,
       },
@@ -38,6 +38,10 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
       },
     });
   },
