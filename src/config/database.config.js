@@ -1,10 +1,10 @@
-import { config } from "./app.config";
+require("dotenv").config();
 
-const dbConfig = {
+module.exports = {
   development: {
-    username: config.DB.DB_USERNAME,
-    password: config.DB.DB_PASSWORD,
-    database: config.DB.DB,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB,
     host: "127.0.0.1",
     dialect: "postgres",
   },
@@ -17,10 +17,10 @@ const dbConfig = {
     logging: false,
   },
   production: {
-    username: config.DB.DB_USERNAME,
-    password: config.DB.DB_PASSWORD,
-    database: config.DB.DB,
-    host: config.DB.DB_HOST,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB,
+    host: process.env.DB_HOST,
     use_env_variable: "DATABASE_URL",
     ssl: false,
     dialectOptions: {
@@ -29,5 +29,3 @@ const dbConfig = {
     dialect: "postgres",
   },
 };
-
-export { dbConfig };

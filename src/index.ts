@@ -9,9 +9,9 @@ import db from "./database/database";
 import { errorHandler } from "./middleware/errorHandler";
 import { HTTPSTATUS } from "./config/http.config";
 import { asyncHandler } from "./middleware/asyncHandler";
+import { routes as initializeRoutes } from "./routes";
 
 const app = express();
-const BASE_PATH = config.BASE_PATH;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -31,6 +31,9 @@ app.get(
     })
   )
 );
+
+// Routes
+initializeRoutes(app);
 
 app.use(errorHandler);
 

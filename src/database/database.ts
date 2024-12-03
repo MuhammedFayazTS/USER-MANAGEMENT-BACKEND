@@ -1,12 +1,21 @@
-import { dbConfig } from "../config/database.config";
+import fs from "fs";
+
+import path from "path";
 import { config as appConfig } from "../config/app.config";
-import { Sequelize, Transaction } from "sequelize";
-import { DBInterface } from "./DBTypes";
+import { DataTypes, Sequelize, Transaction } from "sequelize";
+import { DBInterface, Models } from "./DBTypes";
 
 const environment = appConfig.NODE_ENV as string as
   | "development"
   | "production"
   | "test";
+
+const basename = path.basename(__filename);
+console.log("basename: ", basename);
+console.log("__dirname", __dirname);
+const dbConfigPath = path.resolve(__dirname, "../config/database.config.js");
+console.log("dbConfig:", dbConfigPath);
+const dbConfig = require(dbConfigPath);
 const config = dbConfig[environment] as any;
 
 const sequelize = new Sequelize(
@@ -42,5 +51,21 @@ const db: DBInterface = {
   connectDB,
   createDBTransaction,
 };
+
+const modelsPath = path.resolve(__dirname, "models");
+
+fs.readdirSync(modelsPath)
+  .filter((file: any) => {
+    return (
+      file.indexOf(".") !== 0 &&
+      file !== basename &&
+      (file.slice(-3) === ".js" || file.slice(-3) === ".ts")
+    );
+  })
+  .forEach((file: any) => {
+    const model = require(path.join(modelsPath, file))(sequelize, DataTypes);
+    // Dynamically add the model to the db object
+    db[model.name as Models] = model;
+  });
 
 export default db;

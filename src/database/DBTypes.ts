@@ -1,6 +1,6 @@
 import { Sequelize, Transaction } from "sequelize";
 
-export type Models = "";
+export type Models = "User" | "UserPreference";
 
 type ModelProps = {
   [M in Models]: {
