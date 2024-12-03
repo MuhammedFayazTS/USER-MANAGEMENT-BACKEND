@@ -11,7 +11,7 @@ export interface VerificationCodeAttributes {
   userId: number;
   code?: string;
   type: VerificationEnum;
-  expiredAt: Date;
+  expiresAt: Date;
   createdAt: Date;
 }
 
@@ -21,7 +21,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     userId!: number;
     code?: string;
     type!: VerificationEnum;
-    expiredAt!: Date;
+    expiresAt!: Date;
     createdAt!: Date;
     static associate(models: any) {
       VerificationCode.belongsTo(models.User, {
@@ -40,7 +40,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
         defaultValue: generateUniqueCode,
       },
       type: DataTypes.STRING,
-      expiredAt: DataTypes.DATE,
+      expiresAt: DataTypes.DATE,
       createdAt: DataTypes.DATE,
     },
     {
