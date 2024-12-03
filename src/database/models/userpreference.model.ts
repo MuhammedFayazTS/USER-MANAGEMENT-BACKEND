@@ -40,7 +40,6 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     {
       sequelize,
       modelName: "UserPreference",
-      paranoid: true,
     }
   );
   return UserPreference;
