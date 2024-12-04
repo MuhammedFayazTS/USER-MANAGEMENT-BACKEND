@@ -21,6 +21,7 @@ import {
   signJwtToken,
   verifyJwtToken,
 } from "../../common/utils/jwt";
+import { Op, Sequelize } from "sequelize";
 
 export class AuthService {
   public async register(registerData: RegisterDto) {
@@ -189,5 +190,41 @@ export class AuthService {
       accessToken,
       newRefreshToken,
     };
+  }
+
+  public async verifyEmail(code: string) {
+    const validCode = await db.VerificationCode.findOne({
+      where: {
+        code,
+        type: VerificationEnum.EMAIL_VERIFICATION,
+        expiresAt: {
+          [Op.gt]: new Date(),
+        },
+      },
+    });
+
+    if(!validCode) {
+      throw new BadRequestException("Invalid or expired verification code")
+    }
+
+    const updatedUser = await db.User.findOne({
+      where:{
+        id:validCode.userId,
+      }
+    })
+
+    await updatedUser.update({isEmailVerified:true});
+
+    if(!updatedUser){
+      throw new BadRequestException("Unable to verify email address",
+        ErrorCode.VALIDATION_ERROR
+      )
+    }
+
+    await validCode.destroy()
+
+    return {
+      user: updatedUser
+    }
   }
 }
