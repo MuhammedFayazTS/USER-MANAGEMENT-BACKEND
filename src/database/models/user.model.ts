@@ -46,7 +46,9 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     toJSON() {
       const values = { ...this.get() }; // Get the instance data
       delete values.password; // Remove the password field from the JSON output
-      delete values.userPreference.dataValues.twoFactorSecret; // Remove the twoFacoSecret
+      if(values.userPreference){
+        delete values.userPreference.dataValues.twoFactorSecret; // Remove the twoFacoSecret
+      }
       return values;
     }
   }

@@ -2,10 +2,12 @@
 
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { VerificationEnum } from "../../common/enums/verification-code.enum";
-import { RegisterDto } from "../../common/interfaces/auth.interface";
+import { LoginDto, RegisterDto } from "../../common/interfaces/auth.interface";
 import { BadRequestException } from "../../common/utils/catch-errors";
 import { fortyFiveMinutesFromNow } from "../../common/utils/date-time";
+import jwt from "jsonwebtoken";
 import db from "../../database/database";
+import { config } from "../../config/app.config";
 
 export class AuthService {
   public async register(registerData: RegisterDto) {
@@ -36,14 +38,12 @@ export class AuthService {
 
     const userPreference = await db.UserPreference.create(
       {
-      userId,
-      enable2FA: false, // Provide default values
-      emailNotification: true, // Provide default values
-    },
-    {
-      transaction
-    }
-  )
+        userId,
+      },
+      {
+        transaction,
+      }
+    );
 
     const verificationCode = await db.VerificationCode.create(
       {
@@ -55,7 +55,7 @@ export class AuthService {
     );
 
     transaction.commit();
-    
+
     const userWithPreference = await db.User.findOne({
       where: { id: userId },
       include: [
@@ -68,6 +68,63 @@ export class AuthService {
 
     return {
       user: userWithPreference.toJSON(),
+    };
+  }
+
+  public async login(loginData: LoginDto) {
+    const { email, password, userAgent } = loginData;
+    const transaction = await db.createDBTransaction();
+
+    const user = await db.User.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        "Invalid email or password provided",
+        ErrorCode.AUTH_USER_NOT_FOUND
+      );
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+
+    if (!isPasswordValid) {
+      throw new BadRequestException(
+        "Invalid email or password provided",
+        ErrorCode.AUTH_USER_NOT_FOUND
+      );
+    }
+
+    // check if email user enabled 2Fa return user = null
+
+    const session = await db.Session.create({
+      userId: user.id,
+      userAgent,
+    });
+
+    const accessToken = jwt.sign(
+      { userId: user.id, sessionId: session.id },
+      config.JWT.JWT_SECRET,
+      {
+        audience: ["user"],
+        expiresIn: config.JWT.JWT_EXPIRES_IN,
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      { sessionId: session.id },
+      config.JWT.JWT_REFRESH_SECRET,
+      {
+        audience: ["user"],
+        expiresIn: config.JWT.JWT_REFRESH_EXPIRES_IN,
+      }
+    );
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+      mfaRequired:false
     };
   }
 }
