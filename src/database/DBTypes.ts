@@ -42,4 +42,5 @@ export interface DBInterface extends ModelProps {
   sequelize: Sequelize;
   connectDB: () => void;
   createDBTransaction: () => Promise<Transaction>;
+  [key: string]: any;
 }

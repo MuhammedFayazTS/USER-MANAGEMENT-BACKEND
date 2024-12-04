@@ -34,6 +34,17 @@ export class AuthService {
 
     const userId = newUser.id;
 
+    const userPreference = await db.UserPreference.create(
+      {
+      userId,
+      enable2FA: false, // Provide default values
+      emailNotification: true, // Provide default values
+    },
+    {
+      transaction
+    }
+  )
+
     const verificationCode = await db.VerificationCode.create(
       {
         userId,
@@ -44,9 +55,19 @@ export class AuthService {
     );
 
     transaction.commit();
+    
+    const userWithPreference = await db.User.findOne({
+      where: { id: userId },
+      include: [
+        {
+          model: db.UserPreference,
+          as: "userPreference",
+        },
+      ],
+    });
 
     return {
-      user: newUser,
+      user: userWithPreference.toJSON(),
     };
   }
 }

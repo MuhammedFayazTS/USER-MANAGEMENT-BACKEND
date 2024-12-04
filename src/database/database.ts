@@ -64,8 +64,14 @@ fs.readdirSync(modelsPath)
   })
   .forEach((file: any) => {
     const model = require(path.join(modelsPath, file))(sequelize, DataTypes);
-    // Dynamically add the model to the db object
-    db[model.name as Models] = model;
+    db[model.name as Models] = model; // Dynamically add the model to the db object
   });
+
+// Establish associations
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
 
 export default db;
