@@ -3,11 +3,24 @@
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { VerificationEnum } from "../../common/enums/verification-code.enum";
 import { LoginDto, RegisterDto } from "../../common/interfaces/auth.interface";
-import { BadRequestException } from "../../common/utils/catch-errors";
-import { fortyFiveMinutesFromNow } from "../../common/utils/date-time";
+import {
+  BadRequestException,
+  UnauthorizedException,
+} from "../../common/utils/catch-errors";
+import {
+  calculateExpirationDate,
+  fortyFiveMinutesFromNow,
+  ONE_DAY_IN_MS,
+} from "../../common/utils/date-time";
 import jwt from "jsonwebtoken";
 import db from "../../database/database";
 import { config } from "../../config/app.config";
+import {
+  refreshTokenSignOptions,
+  RefreshTPayload,
+  signJwtToken,
+  verifyJwtToken,
+} from "../../common/utils/jwt";
 
 export class AuthService {
   public async register(registerData: RegisterDto) {
@@ -102,29 +115,79 @@ export class AuthService {
       userAgent,
     });
 
-    const accessToken = jwt.sign(
-      { userId: user.id, sessionId: session.id },
-      config.JWT.JWT_SECRET,
-      {
-        audience: ["user"],
-        expiresIn: config.JWT.JWT_EXPIRES_IN,
-      }
-    );
+    const accessToken = signJwtToken({
+      userId: user.id,
+      sessionId: session.id,
+    });
 
-    const refreshToken = jwt.sign(
+    const refreshToken = signJwtToken(
       { sessionId: session.id },
-      config.JWT.JWT_REFRESH_SECRET,
-      {
-        audience: ["user"],
-        expiresIn: config.JWT.JWT_REFRESH_EXPIRES_IN,
-      }
+      refreshTokenSignOptions
     );
 
     return {
       user,
       accessToken,
       refreshToken,
-      mfaRequired:false
+      mfaRequired: false,
+    };
+  }
+
+  public async refreshToken(refreshToken: string) {
+    const { payload } = verifyJwtToken<RefreshTPayload>(refreshToken, {
+      secret: refreshTokenSignOptions.secret,
+    });
+
+    if (!payload) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    const session = await db.Session.findOne({
+      where: {
+        id: payload.sessionId,
+      },
+    });
+
+    const now = Date.now();
+
+    if (!session) {
+      throw new UnauthorizedException("Session does not exist");
+    }
+
+    if (session.expiredAt.getTime() <= now) {
+      throw new UnauthorizedException("Session expired");
+    }
+
+    const sessionRequireRefresh =
+      session.expiredAt.getTime() - now <= ONE_DAY_IN_MS;
+
+    if (sessionRequireRefresh) {
+      session.expiredAt = calculateExpirationDate(
+        config.JWT.JWT_REFRESH_EXPIRES_IN
+      );
+      await session.save();
+    }
+
+    const newRefreshToken = sessionRequireRefresh
+      ? signJwtToken(
+          {
+            sessionId: session.id,
+          },
+          refreshTokenSignOptions
+        )
+      : undefined;
+
+    const accessToken = signJwtToken(
+      {
+        userId: session.userId,
+        sessionId: session.id,
+      },
+      refreshTokenSignOptions
+    );
+
+    return {
+      accessToken,
+      newRefreshToken,
     };
   }
 }

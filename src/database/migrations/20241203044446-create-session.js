@@ -23,7 +23,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      expiresAt: {
+      expiredAt: {
         type: Sequelize.DATE,
         required: true,
       },

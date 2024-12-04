@@ -9,7 +9,7 @@ export interface SessionAttributes {
   id?: number;
   userId: number;
   userAgent?: string;
-  expiresAt: Date;
+  expiredAt: Date;
   createdAt: Date;
 }
 
@@ -18,7 +18,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     id?: number;
     userId!: number;
     userAgent?: string;
-    expiresAt!: Date;
+    expiredAt!: Date;
     createdAt!: Date;
     static associate(models:any) {
       Session.belongsTo(models.User, {
@@ -31,7 +31,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     {
       userId: DataTypes.INTEGER,
       userAgent: DataTypes.STRING,
-      expiresAt: {
+      expiredAt: {
         type: DataTypes.DATE,
         defaultValue: thirtyDaysFromNow,
       },
