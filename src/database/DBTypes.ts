@@ -23,6 +23,9 @@ type ModelProps = {
     destroy: (
       options?: { where?: {}; transaction?: Transaction }
     ) => Promise<number>;
+    scope: (
+      ...scopeNames: (string | undefined | null)[]
+    ) => Omit<ModelProps[M], 'scope'>;
   };
 };
 

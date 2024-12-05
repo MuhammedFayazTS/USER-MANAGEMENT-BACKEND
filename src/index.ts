@@ -4,12 +4,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { config } from "./config/app.config";
 
-// Import models and database
 import db from "./database/database";
 import { errorHandler } from "./middleware/errorHandler";
 import { HTTPSTATUS } from "./config/http.config";
 import { asyncHandler } from "./middleware/asyncHandler";
 import { routes as initializeRoutes } from "./routes";
+import passport from "./middleware/passport";
 
 const app = express();
 
@@ -22,6 +22,7 @@ app.use(
   })
 );
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.get(
   "/",

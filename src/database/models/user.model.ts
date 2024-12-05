@@ -69,15 +69,8 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
       scopes: {
         withoutPassword: {
           attributes: {
-            exclude: ["password", "userPreference.twoFactorSecret"],
+            exclude: ["password"],
           },
-          include: [
-            {
-              model: sequelize.models.UserPreference,
-              as: "userPreference",
-              attributes: { exclude: ["twoFactorSecret"] },
-            },
-          ],
         },
       },
       hooks: {

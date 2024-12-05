@@ -320,22 +320,28 @@ export class AuthService {
     });
 
     if (!validCode) {
-      throw new NotFoundException("Invalid or expired verification code",ErrorCode.RESOURCE_NOT_FOUND);
+      throw new NotFoundException(
+        "Invalid or expired verification code",
+        ErrorCode.RESOURCE_NOT_FOUND
+      );
     }
 
     const user = await db.User.findOne({
-      where:{
-        id:validCode.userId,
-      }
-    })
+      where: {
+        id: validCode.userId,
+      },
+    });
 
     if (!user) {
-      throw new BadRequestException("User does not exist",ErrorCode.AUTH_USER_NOT_FOUND);
+      throw new BadRequestException(
+        "User does not exist",
+        ErrorCode.AUTH_USER_NOT_FOUND
+      );
     }
 
-    await user.update({password})
+    await user.update({ password });
 
-    if(!user){
+    if (!user) {
       throw new BadRequestException("Failed to reset password");
     }
 
@@ -347,6 +353,14 @@ export class AuthService {
       },
     });
 
-    return {user}
+    return { user };
+  }
+
+  public async logout(sessionId: number) {
+    return await db.Session.destroy({
+      where: {
+        id: sessionId,
+      },
+    });
   }
 }
