@@ -3,9 +3,11 @@ import { asyncHandler } from "../../middleware/asyncHandler";
 import { AuthService } from "./auth.service";
 import { HTTPSTATUS } from "../../config/http.config";
 import {
+  emailSchema,
   loginSchema,
   registerSchema,
-  verficationSchema,
+  resetPasswordSchema,
+  verficationEmailSchema,
 } from "../../common/validators/auth.validator";
 import {
   getAccessTokenCookieOptions,
@@ -89,7 +91,7 @@ export class AuthController {
 
   public verifyEmail = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
-      const {code} = verficationSchema.parse(req.body)
+      const {code} = verficationEmailSchema.parse(req.body)
 
       await this.authService.verifyEmail(code)
       
@@ -97,6 +99,34 @@ export class AuthController {
         .status(HTTPSTATUS.OK)
         .json({
           message: "Email verified successfully",
+        });
+    }
+  );
+  
+  public forgotPassword = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const email = emailSchema.parse(req.body.email)
+
+      await this.authService.forgotPassword(email)
+      
+      return res
+        .status(HTTPSTATUS.OK)
+        .json({
+          message: "Password reset email sent",
+        });
+    }
+  );
+  
+  public resetPassword = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const body = resetPasswordSchema.parse(req.body)
+
+      await this.authService.resetPassword(body)
+      
+      return res
+        .status(HTTPSTATUS.OK)
+        .json({
+          message: "Password reset successfully",
         });
     }
   );

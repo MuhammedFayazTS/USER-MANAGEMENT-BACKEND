@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const emailSchema = z.string().trim().email().min(1).max(255);
+export const emailSchema = z.string().trim().email().min(1).max(255);
 const passwordSchema = z.string().trim().min(6).max(255);
 const verficationCodeSchema = z.string().trim().min(1).max(255);
 
@@ -22,11 +22,11 @@ export const loginSchema = z.object({
   userAgent: z.string().optional(),
 });
 
-export const verficationSchema = z.object({
+export const verficationEmailSchema = z.object({
   code: verficationCodeSchema,
 });
 
-export const resetPassword = z.object({
+export const resetPasswordSchema = z.object({
   password: passwordSchema,
-  code: verficationCodeSchema,
+  verificationCode: verficationCodeSchema,
 });

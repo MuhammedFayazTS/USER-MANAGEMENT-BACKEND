@@ -20,6 +20,9 @@ type ModelProps = {
     findAll: (params: IFindOptions) => Promise<any>;
     findAndCountAll: (params: IFindOptions) => Promise<any>;
     count: (params: IFindOptions) => Promise<number>;
+    destroy: (
+      options?: { where?: {}; transaction?: Transaction }
+    ) => Promise<number>;
   };
 };
 

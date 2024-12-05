@@ -6,6 +6,10 @@ export const thirtyDaysFromNow = (): Date => moment().add(30, 'days').toDate();
 
 export const fortyFiveMinutesFromNow = (): Date => moment().add(45, 'minutes').toDate();
 
+export const anHourFromNow = (): Date => moment().add(1, 'hour').toDate();
+
+export const threeMinuteAgo = (): Date => moment().subtract(3, 'minutes').toDate();
+
 export const calculateExpirationDate = (expiresIn: string = "15m"): Date => {
     // Match number + unit (m = minutes, h = hours, d = days)
     const match = expiresIn.match(/^(\d+)([mhd])$/);

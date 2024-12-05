@@ -11,10 +11,7 @@ const environment = appConfig.NODE_ENV as string as
   | "test";
 
 const basename = path.basename(__filename);
-console.log("basename: ", basename);
-console.log("__dirname", __dirname);
 const dbConfigPath = path.resolve(__dirname, "../config/database.config.js");
-console.log("dbConfig:", dbConfigPath);
 const dbConfig = require(dbConfigPath);
 const config = dbConfig[environment] as any;
 
