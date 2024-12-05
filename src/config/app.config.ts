@@ -16,7 +16,9 @@ const appConfig = () => ({
     DB_PASSWORD: getEnv("DB_PASSWORD"),
     DB: getEnv("DB"),
     DB_HOST: getEnv("DB_HOST"),
-  }
+  },
+  MAILER_SENDER: getEnv("MAILER_SENDER"),
+  RESEND_API_KEY: getEnv("RESEND_API_KEY"),
 });
 
 export const config = appConfig();

@@ -22,6 +22,8 @@ import {
   verifyJwtToken,
 } from "../../common/utils/jwt";
 import { Op, Sequelize } from "sequelize";
+import { sendEmail } from "../../mailers/mailer";
+import { verifyEmailTemplate } from "../../mailers/templates/template";
 
 export class AuthService {
   public async register(registerData: RegisterDto) {
@@ -59,7 +61,7 @@ export class AuthService {
       }
     );
 
-    const verificationCode = await db.VerificationCode.create(
+    const verification = await db.VerificationCode.create(
       {
         userId,
         type: VerificationEnum.EMAIL_VERIFICATION,
@@ -78,6 +80,13 @@ export class AuthService {
           as: "userPreference",
         },
       ],
+    });
+
+    const verificationUrl = `${config.APP_ORIGIN}/confirm-account?code=${verification.code}`;
+
+    await sendEmail({
+      to: newUser.email,
+      ...verifyEmailTemplate(verificationUrl, "Brand Name"), //need to change the brand name or make it dynamic
     });
 
     return {
@@ -203,28 +212,29 @@ export class AuthService {
       },
     });
 
-    if(!validCode) {
-      throw new BadRequestException("Invalid or expired verification code")
+    if (!validCode) {
+      throw new BadRequestException("Invalid or expired verification code");
     }
 
     const updatedUser = await db.User.findOne({
-      where:{
-        id:validCode.userId,
-      }
-    })
+      where: {
+        id: validCode.userId,
+      },
+    });
 
-    await updatedUser.update({isEmailVerified:true});
+    await updatedUser.update({ isEmailVerified: true });
 
-    if(!updatedUser){
-      throw new BadRequestException("Unable to verify email address",
+    if (!updatedUser) {
+      throw new BadRequestException(
+        "Unable to verify email address",
         ErrorCode.VALIDATION_ERROR
-      )
+      );
     }
 
-    await validCode.destroy()
+    await validCode.destroy();
 
     return {
-      user: updatedUser
-    }
+      user: updatedUser,
+    };
   }
 }
