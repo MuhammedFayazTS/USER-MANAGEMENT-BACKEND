@@ -206,7 +206,6 @@ export class AuthService {
         userId: session.userId,
         sessionId: session.id,
       },
-      refreshTokenSignOptions
     );
 
     return {
