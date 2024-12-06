@@ -2,6 +2,7 @@
 
 import { Model, Sequelize } from "sequelize";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
+import { UserPreferenceAttributes } from "./userpreference.model";
 
 interface UserPreferences {
   enable2FA: boolean;
@@ -18,6 +19,7 @@ export interface UserAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
+  userPreference?: UserPreferenceAttributes;
   comparePassword: (password: string) => Promise<boolean>;
 }
 
