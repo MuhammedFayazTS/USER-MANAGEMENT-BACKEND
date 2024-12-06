@@ -5,5 +5,6 @@ import { mfaController } from "./mfa.module";
 const mfaRoutes = Router()
 
 mfaRoutes.get('/setup',authenticateJwt,mfaController.generateMFASetup)
+mfaRoutes.post('/verify',authenticateJwt,mfaController.verifyMFASetup)
 
 export default mfaRoutes;

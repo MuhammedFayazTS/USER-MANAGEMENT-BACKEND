@@ -1,5 +1,8 @@
 import { Request } from "express";
-import { UnauthorizedException } from "../../common/utils/catch-errors";
+import {
+  BadRequestException,
+  UnauthorizedException,
+} from "../../common/utils/catch-errors";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 import db from "../../database/database";
@@ -44,6 +47,48 @@ export class MfaService {
       message: "Scan the QR code or use the secret key.",
       secret: secretkey,
       qrImageUrl,
+    };
+  }
+
+  public async verifyMFASetup(req: Request, code: string, secretKey: string) {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedException("User not authorized");
+    }
+
+    if (user.userPreference?.enable2FA) {
+      return {
+        message: "MFA already enabled",
+        userPreference: {
+          enable2FA: user.userPreference.enable2FA,
+        },
+      };
+    }
+
+    const isValid = speakeasy.totp.verify({
+      secret: secretKey,
+      encoding: "base32",
+      token: code,
+    });
+
+    if (!isValid) {
+      throw new BadRequestException("Invalid MFA code, please try again.");
+    }
+
+    const userPreference = await db.UserPreference.findOne({
+      where: { userId: user.id },
+    });
+
+    userPreference.enable2FA = true;
+
+    await userPreference.save();
+
+    return {
+      message: "MFA setup completed successfully",
+      userPreference: {
+        enable2FA: userPreference.enable2FA,
+      },
     };
   }
 }

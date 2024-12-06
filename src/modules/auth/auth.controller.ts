@@ -15,7 +15,10 @@ import {
   getRefreshTokenCookieOptions,
   setAuthenticationCookies,
 } from "../../common/utils/cookie";
-import { NotFoundException, UnauthorizedException } from "../../common/utils/catch-errors";
+import {
+  NotFoundException,
+  UnauthorizedException,
+} from "../../common/utils/catch-errors";
 
 export class AuthController {
   private authService: AuthService;
@@ -48,6 +51,14 @@ export class AuthController {
 
       const { user, accessToken, refreshToken, mfaRequired } =
         await this.authService.login(body);
+
+      if (mfaRequired === true) {
+        return res.status(HTTPSTATUS.OK).json({
+          message: "Verify MFA authentication",
+          mfaRequired,
+          user,
+        });
+      }
 
       return setAuthenticationCookies({
         res,
@@ -92,61 +103,53 @@ export class AuthController {
 
   public verifyEmail = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
-      const {code} = verficationEmailSchema.parse(req.body)
+      const { code } = verficationEmailSchema.parse(req.body);
 
-      await this.authService.verifyEmail(code)
-      
-      return res
-        .status(HTTPSTATUS.OK)
-        .json({
-          message: "Email verified successfully",
-        });
+      await this.authService.verifyEmail(code);
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Email verified successfully",
+      });
     }
   );
-  
+
   public forgotPassword = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
-      const email = emailSchema.parse(req.body.email)
+      const email = emailSchema.parse(req.body.email);
 
-      await this.authService.forgotPassword(email)
-      
-      return res
-        .status(HTTPSTATUS.OK)
-        .json({
-          message: "Password reset email sent",
-        });
+      await this.authService.forgotPassword(email);
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Password reset email sent",
+      });
     }
   );
-  
+
   public resetPassword = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
-      const body = resetPasswordSchema.parse(req.body)
+      const body = resetPasswordSchema.parse(req.body);
 
-      await this.authService.resetPassword(body)
-      
-      return clearAuthenticationCookies(res)
-        .status(HTTPSTATUS.OK)
-        .json({
-          message: "Password reset successfully",
-        });
+      await this.authService.resetPassword(body);
+
+      return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+        message: "Password reset successfully",
+      });
     }
   );
-  
+
   public logout = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
       const sessionId = req.sessionId;
 
-      if(!sessionId){
+      if (!sessionId) {
         throw new NotFoundException("Session is invalid.");
       }
-      
-      await this.authService.logout(sessionId)
-      
-      return clearAuthenticationCookies(res)
-        .status(HTTPSTATUS.OK)
-        .json({
-          message: "User logout successful",
-        });
+
+      await this.authService.logout(sessionId);
+
+      return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+        message: "User logout successful",
+      });
     }
   );
 }

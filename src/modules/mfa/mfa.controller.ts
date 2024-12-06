@@ -3,6 +3,7 @@ import { asyncHandler } from "../../middleware/asyncHandler";
 import { MfaService } from "./mfa.service";
 import { Response } from "express";
 import { HTTPSTATUS } from "../../config/http.config";
+import { verifyMFASchema } from "../../common/validators/mfa.validator";
 
 export class MfaController {
   private mfaService: MfaService;
@@ -22,4 +23,18 @@ export class MfaController {
       });
     }
   );
+
+  public verifyMFASetup = asyncHandler(async (req: Request, res: Response) => {
+    const { code, secretKey } = verifyMFASchema.parse(req.body);
+    const { message, userPreference } = await this.mfaService.verifyMFASetup(
+      req,
+      code,
+      secretKey
+    );
+
+    return res.status(HTTPSTATUS.OK).json({
+      message,
+      userPreference,
+    });
+  });
 }

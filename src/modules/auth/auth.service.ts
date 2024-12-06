@@ -114,6 +114,10 @@ export class AuthService {
 
     const user = await db.User.findOne({
       where: { email },
+      include: {
+        model: db.UserPreference,
+        attributes: ["enable2FA"],
+      },
     });
 
     if (!user) {
@@ -133,6 +137,14 @@ export class AuthService {
     }
 
     // check if email user enabled 2Fa return user = null
+    if (user.userPreference.enable2FA) {
+      return {
+        user: null,
+        mfaRequired: true,
+        accessToken: "",
+        refreshToken: "",
+      };
+    }
 
     const session = await db.Session.create({
       userId: user.id,
@@ -201,12 +213,10 @@ export class AuthService {
         )
       : undefined;
 
-    const accessToken = signJwtToken(
-      {
-        userId: session.userId,
-        sessionId: session.id,
-      },
-    );
+    const accessToken = signJwtToken({
+      userId: session.userId,
+      sessionId: session.id,
+    });
 
     return {
       accessToken,
