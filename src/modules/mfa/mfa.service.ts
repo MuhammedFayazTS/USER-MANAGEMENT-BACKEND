@@ -1,11 +1,13 @@
 import { Request } from "express";
 import {
   BadRequestException,
+  NotFoundException,
   UnauthorizedException,
 } from "../../common/utils/catch-errors";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 import db from "../../database/database";
+import { refreshTokenSignOptions, signJwtToken } from "../../common/utils/jwt";
 
 export class MfaService {
   public async generateMFASetup(req: Request) {
@@ -30,7 +32,7 @@ export class MfaService {
       const userPreference = await db.UserPreference.findOne({
         where: { userId: user.id },
       });
-      userPreference.secretkey = secretkey;
+      userPreference.twoFactorSecret = secretkey;
       await userPreference.save();
     }
 
@@ -122,6 +124,57 @@ export class MfaService {
       userPreference: {
         enable2FA: userPreference.enable2FA,
       },
+    };
+  }
+
+  public async verifyMFAForLogin(
+    code: string,
+    email: string,
+    userAgent?: string
+  ) {
+    const user = await db.User.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const userPreference = await db.UserPreference.findOne({
+      where: { userId: user.id },
+    });
+
+    if (!userPreference.enable2FA && !userPreference.twoFactorSecret) {
+      throw new UnauthorizedException("MFA not enabled for this user");
+    }
+
+    const isValid = speakeasy.totp.verify({
+      secret: userPreference.twoFactorSecret,
+      encoding: "base32",
+      token: code,
+    });
+
+    if (!isValid) {
+      throw new BadRequestException("Invalid MFA code, please try again.");
+    }
+
+    const session = await db.Session.create({
+      userId: user.id,
+      userAgent,
+    });
+
+    const accessToken = signJwtToken({
+      userId: user.id,
+      sessionId: session.id,
+    });
+
+    const refreshToken = signJwtToken(
+      { sessionId: session.id },
+      refreshTokenSignOptions
+    );
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
     };
   }
 }

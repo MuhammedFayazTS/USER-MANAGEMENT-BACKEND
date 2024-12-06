@@ -8,4 +8,6 @@ mfaRoutes.get('/setup',authenticateJwt,mfaController.generateMFASetup)
 mfaRoutes.post('/verify',authenticateJwt,mfaController.verifyMFASetup)
 mfaRoutes.put('/revoke',authenticateJwt,mfaController.recokeMFA)
 
+mfaRoutes.post('/verify-login',mfaController.verifyMFAForLogin)
+
 export default mfaRoutes;

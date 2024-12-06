@@ -117,6 +117,7 @@ export class AuthService {
       include: {
         model: db.UserPreference,
         attributes: ["enable2FA"],
+        as:'userPreference'
       },
     });
 
