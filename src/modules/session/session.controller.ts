@@ -7,6 +7,7 @@ import {
 } from "../../common/utils/catch-errors";
 import { session } from "passport";
 import { HTTPSTATUS } from "../../config/http.config";
+import { z } from "zod";
 
 export class SessionController {
   private sessionService: SessionService;
@@ -42,11 +43,26 @@ export class SessionController {
       throw new NotFoundException("Session Id not found, please login again.");
     }
 
-    const {user} = await this.sessionService.getSession(sessionId);
-    
+    const { user } = await this.sessionService.getSession(sessionId);
+
     return res.status(HTTPSTATUS.OK).json({
       message: "Session retrieved successfully",
       user,
+    });
+  });
+
+  public deleteSession = asyncHandler(async (req: Request, res: Response) => {
+    const sessionId = z.number().parse(+req.params.id);
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new NotFoundException("User id not found, please login again.");
+    }
+
+    await this.sessionService.deleteSession(sessionId, userId);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Session remove successfully",
     });
   });
 }

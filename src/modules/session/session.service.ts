@@ -21,7 +21,7 @@ export class SessionService {
   public async getSession(sessionId: number) {
     const session = await db.Session.findOne({
       where: {
-        id:sessionId,
+        id: sessionId,
         expiredAt: {
           [Op.gt]: new Date(),
         },
@@ -30,7 +30,7 @@ export class SessionService {
       include: {
         model: db.User,
         attributes: ["id", "name", "email", "createdAt", "updatedAt"],
-        as:'user'
+        as: "user",
       },
     });
 
@@ -41,5 +41,16 @@ export class SessionService {
     const { user } = session;
 
     return { user };
+  }
+
+  public async deleteSession(sessionId: number, userId: number) {
+    const deletedSession = await db.Session.destroy({
+      where: { id: sessionId, userId },
+    });
+
+    if (!deletedSession) {
+      throw new NotFoundException("Session not found");
+    }
+    return;
   }
 }
