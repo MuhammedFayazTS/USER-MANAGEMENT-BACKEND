@@ -37,4 +37,13 @@ export class MfaController {
       userPreference,
     });
   });
+
+  public recokeMFA = asyncHandler(async (req: Request, res: Response) => {
+    const { message, userPreference } = await this.mfaService.recokeMFA(req);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message,
+      userPreference,
+    });
+  });
 }

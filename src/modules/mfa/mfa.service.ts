@@ -91,4 +91,37 @@ export class MfaService {
       },
     };
   }
+
+  public async recokeMFA(req: Request) {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedException("User not authorized");
+    }
+
+    const userPreference = await db.UserPreference.findOne({
+      where: { userId: user.id },
+      attributes: ["id", "twoFactorSecret", "enable2FA"],
+    });
+
+    if (!userPreference.enable2FA) {
+      return {
+        message: "MFA is not enabled",
+        userPreference: {
+          enable2FA: userPreference.enable2FA,
+        },
+      };
+    }
+
+    userPreference.twoFactorSecret = undefined;
+    userPreference.enable2FA = false;
+    await userPreference.save();
+
+    return {
+      message: "MFA revoke successful",
+      userPreference: {
+        enable2FA: userPreference.enable2FA,
+      },
+    };
+  }
 }
