@@ -30,6 +30,11 @@ export class SessionService {
       include: {
         model: db.User,
         attributes: ["id", "name", "email", "createdAt", "updatedAt"],
+        include: {
+          model: db.UserPreference,
+          attributes: ["userId", "enable2FA", "emailNotification"],
+          as: "userPreference",
+        },
         as: "user",
       },
     });
