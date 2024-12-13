@@ -47,6 +47,16 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
         foreignKey: "userId",
         as: "userPreference",
       });
+      User.belongsTo(models.Role, {
+        foreignKey: "roleId",
+        as: "role",
+      });
+      User.belongsToMany(models.Group, {
+        through: models.UserGroup,
+        foreignKey: "userId",
+        otherKey: "groupId",
+        as: "groups",
+      });      
     }
 
     async comparePassword(value: string): Promise<boolean> {
@@ -74,6 +84,8 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
       email: DataTypes.STRING,
       password: DataTypes.STRING,
       isEmailVerified: DataTypes.BOOLEAN,
+      roleId: DataTypes.INTEGER,
+      groupId: DataTypes.INTEGER,
       deletedAt: DataTypes.DATE,
       externalUserId: DataTypes.STRING,
       origin: DataTypes.STRING,
