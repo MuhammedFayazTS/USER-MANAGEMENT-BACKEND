@@ -1,6 +1,13 @@
 import { Sequelize, Transaction } from "sequelize";
 
-export type Models = "User" | "UserPreference" | "Session" | "VerificationCode";
+export type Models =
+  | "User"
+  | "UserPreference"
+  | "Session"
+  | "VerificationCode"
+  | "Role"
+  | "Permission"
+  | "RolePermission";
 
 type ModelProps = {
   [M in Models]: {
@@ -20,12 +27,13 @@ type ModelProps = {
     findAll: (params: IFindOptions) => Promise<any>;
     findAndCountAll: (params: IFindOptions) => Promise<any>;
     count: (params: IFindOptions) => Promise<number>;
-    destroy: (
-      options?: { where?: {}; transaction?: Transaction }
-    ) => Promise<number>;
+    destroy: (options?: {
+      where?: {};
+      transaction?: Transaction;
+    }) => Promise<number>;
     scope: (
       ...scopeNames: (string | undefined | null)[]
-    ) => Omit<ModelProps[M], 'scope'>;
+    ) => Omit<ModelProps[M], "scope">;
   };
 };
 
