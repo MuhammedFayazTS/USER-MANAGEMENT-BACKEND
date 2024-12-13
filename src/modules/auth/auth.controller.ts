@@ -4,6 +4,7 @@ import { AuthService } from "./auth.service";
 import { HTTPSTATUS } from "../../config/http.config";
 import {
   emailSchema,
+  googleAuthSchema,
   loginSchema,
   registerSchema,
   resetPasswordSchema,
@@ -16,15 +17,21 @@ import {
   setAuthenticationCookies,
 } from "../../common/utils/cookie";
 import {
+  BadRequestException,
   NotFoundException,
   UnauthorizedException,
 } from "../../common/utils/catch-errors";
+import { GoogleAuthService } from "./google.service";
+import { GoogleLoginUser } from "../../common/strategies/google.strategy";
+import { config } from "../../config/app.config";
 
 export class AuthController {
   private authService: AuthService;
+  private googleService: GoogleAuthService;
 
-  constructor(authService: AuthService) {
+  constructor(authService: AuthService, googleService: GoogleAuthService) {
     this.authService = authService;
+    this.googleService = googleService;
   }
 
   public register = asyncHandler(
@@ -150,6 +157,30 @@ export class AuthController {
       return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
         message: "User logout successful",
       });
+    }
+  );
+
+  //google oAuth
+  public googleLogin = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const userAgent = req.headers["user-agent"];
+      const googleUser = googleAuthSchema.parse({ ...req.user, userAgent });
+      if (!googleUser || !googleUser.externalUserId) {
+        throw new BadRequestException("Google login failed");
+      }
+
+      const { accessToken, refreshToken } =
+        await this.googleService.googleLogin(
+          googleUser as unknown as GoogleLoginUser
+        );
+
+      return setAuthenticationCookies({
+        res,
+        accessToken,
+        refreshToken,
+      })
+        .status(HTTPSTATUS.OK)
+        .redirect(config.APP_ORIGIN);
     }
   );
 }

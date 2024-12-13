@@ -30,3 +30,10 @@ export const resetPasswordSchema = z.object({
   password: passwordSchema,
   verificationCode: verficationCodeSchema,
 });
+
+export const googleAuthSchema = z.object({
+  email: z.string().email(),
+  name: z.string().regex(/^[a-zA-Z ]*$/),
+  externalUserId: z.string(),
+  userAgent: z.string().optional(),
+});

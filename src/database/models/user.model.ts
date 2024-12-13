@@ -14,13 +14,15 @@ export interface UserAttributes {
   id?: number;
   name: string;
   email: string;
-  password: string;
+  password?: string | null;
   isEmailVerified: boolean;
+  origin?: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
   userPreference?: UserPreferenceAttributes;
-  comparePassword: (password: string) => Promise<boolean>;
+  externalUserId?:string
+  comparePassword?: (password: string) => Promise<boolean>;
 }
 
 module.exports = (sequelize: Sequelize, DataTypes: any) => {
@@ -28,8 +30,10 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     id?: number;
     name!: string;
     email!: string;
-    password!: string;
+    password?: string | null;
     isEmailVerified!: boolean;
+    origin?: string;
+    externalUserId?: string;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date;
@@ -42,13 +46,16 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     }
 
     async comparePassword(value: string): Promise<boolean> {
+      if (!this.password) {
+        return false;
+      }
       return compareValue(value, this.password);
     }
 
     toJSON() {
       const values = { ...this.get() }; // Get the instance data
       delete values.password; // Remove the password field from the JSON output
-      if(values.userPreference){
+      if (values.userPreference) {
         delete values.userPreference.dataValues.twoFactorSecret; // Remove the twoFacoSecret
       }
       return values;
@@ -62,6 +69,8 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
       password: DataTypes.STRING,
       isEmailVerified: DataTypes.BOOLEAN,
       deletedAt: DataTypes.DATE,
+      externalUserId: DataTypes.STRING,
+      origin: DataTypes.STRING,
     },
     {
       sequelize,
@@ -77,8 +86,10 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
       },
       hooks: {
         beforeSave: async (user: User) => {
-          if (user.changed("password")) {
+          if (user.changed("password") && user.password) {
             user.password = await hashValue(user.password, 10);
+          } else if (!user.password) {
+            user.password = null;
           }
         },
       },
