@@ -15,7 +15,7 @@ export const setupGoogleStrategy = (passport: PassportStatic) => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          const { name, emails, id } = profile;
+          const { name, emails, id, photos } = profile;
 
           if (!emails || !emails.length || !emails[0].value) {
             throw new BadRequestException("Email not found");
@@ -23,7 +23,9 @@ export const setupGoogleStrategy = (passport: PassportStatic) => {
 
           const user: UserAttributes = {
             email: emails[0].value,
-            name: name?.givenName + ' ' + name?.familyName,
+            firstName: name?.givenName ??  '',
+            lastName: name?.familyName ?? '',
+            image: photos?.[0].value ?? '',
             externalUserId: id,
             isEmailVerified: false,
           };
@@ -52,10 +54,9 @@ export const setupGoogleStrategy = (passport: PassportStatic) => {
 
 export class GoogleLoginUser {
   email!: string;
-  name!: string;
-  // firstName!: string;
-  // middleName?: string;
-  // lastName!: string;
+  firstName!: string;
+  lastName!: string;
+  image!: string;
   externalUserId!: string;
   userAgent!: string;
 }

@@ -29,7 +29,7 @@ export class SessionService {
       attributes: ["id", "userId", "userAgent", "createdAt"],
       include: {
         model: db.User,
-        attributes: ["id", "name", "email", "createdAt", "updatedAt"],
+        attributes: ["id", "firstName", "lastName", "image", "email", "createdAt", "updatedAt"],
         include: {
           model: db.UserPreference,
           attributes: ["userId", "enable2FA", "emailNotification"],

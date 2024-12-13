@@ -12,7 +12,9 @@ interface UserPreferences {
 
 export interface UserAttributes {
   id?: number;
-  name: string;
+  firstName: string;
+  lastName?: string;
+  image?: string;
   email: string;
   password?: string | null;
   isEmailVerified: boolean;
@@ -28,7 +30,9 @@ export interface UserAttributes {
 module.exports = (sequelize: Sequelize, DataTypes: any) => {
   class User extends Model {
     id?: number;
-    name!: string;
+    firstName!: string;
+    lastName?: string;
+    image?: string;
     email!: string;
     password?: string | null;
     isEmailVerified!: boolean;
@@ -64,7 +68,9 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
 
   User.init(
     {
-      name: DataTypes.STRING,
+      firstName: DataTypes.STRING,
+      lastName: DataTypes.STRING,
+      image: DataTypes.STRING,
       email: DataTypes.STRING,
       password: DataTypes.STRING,
       isEmailVerified: DataTypes.BOOLEAN,

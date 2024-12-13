@@ -9,7 +9,9 @@ export class GoogleAuthService {
 
     if (!user) {
       user = await userService.createUser({
-        name: googleLoginInput.name,
+        firstName: googleLoginInput.firstName,
+        lastName: googleLoginInput.lastName,
+        image: googleLoginInput.image,
         email: googleLoginInput.email,
         externalUserId: googleLoginInput.externalUserId,
         isEmailVerified: true,
