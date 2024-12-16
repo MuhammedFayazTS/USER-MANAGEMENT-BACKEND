@@ -41,7 +41,7 @@ import { hashValue } from "../../common/utils/bcrypt";
 
 export class AuthService {
   public async register(registerData: RegisterDto) {
-    const { name, email, password } = registerData;
+    const { firstName, lastName, email, password } = registerData;
     const transaction = await db.createDBTransaction();
 
     const existingUser = await db.User.findOne({
@@ -57,7 +57,8 @@ export class AuthService {
 
     const newUser = await db.User.create(
       {
-        name,
+        firstName,
+        lastName,
         email,
         password,
       },
@@ -100,7 +101,7 @@ export class AuthService {
 
     await sendEmail({
       to: newUser.email,
-      ...verifyEmailTemplate(verificationUrl, "Brand Name"), //need to change the brand name or make it dynamic
+      ...verifyEmailTemplate(verificationUrl, "Nexus Flow"), //need to change the comapnay name
     });
 
     return {

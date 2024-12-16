@@ -6,7 +6,8 @@ const verficationCodeSchema = z.string().trim().min(1).max(255);
 
 export const registerSchema = z
   .object({
-    name: z.string().trim().min(1).max(255),
+    firstName: z.string().trim().min(1).max(255),
+    lastName: z.string().trim().min(1).max(255),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: passwordSchema,
@@ -29,4 +30,13 @@ export const verficationEmailSchema = z.object({
 export const resetPasswordSchema = z.object({
   password: passwordSchema,
   verificationCode: verficationCodeSchema,
+});
+
+export const googleAuthSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().regex(/^[a-zA-Z ]*$/),
+  lastName: z.string().regex(/^[a-zA-Z ]*$/),
+  image: z.string().optional(),
+  externalUserId: z.string(),
+  userAgent: z.string().optional(),
 });

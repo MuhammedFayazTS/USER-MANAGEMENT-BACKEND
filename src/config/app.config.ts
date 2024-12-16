@@ -11,12 +11,17 @@ const appConfig = () => ({
     JWT_REFRESH_SECRET: getEnv("JWT_REFRESH_SECRET"),
     JWT_REFRESH_EXPIRES_IN: getEnv("JWT_REFRESH_EXPIRES_IN", "30d"),
   },
-  DB:{
+  DB: {
     DB_USERNAME: getEnv("DB_USERNAME"),
     DB_PASSWORD: getEnv("DB_PASSWORD"),
     DB: getEnv("DB"),
     DB_HOST: getEnv("DB_HOST"),
   },
+  GOOGLE: {
+    GOOGLE_CLIENT_ID: getEnv("GOOGLE_CLIENT_ID"),
+    GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET"),
+  },
+  SESSION_SECRET: getEnv("SESSION_SECRET"),
   MAILER_SENDER: getEnv("MAILER_SENDER"),
   RESEND_API_KEY: getEnv("RESEND_API_KEY"),
 });

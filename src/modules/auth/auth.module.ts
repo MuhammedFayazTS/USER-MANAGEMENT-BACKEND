@@ -2,8 +2,10 @@
 
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { GoogleAuthService } from "./google.service";
 
 const authService = new AuthService();
-const authController = new AuthController(authService);
+const googleService = new GoogleAuthService();
+const authController = new AuthController(authService,googleService);
 
 export { authController, authService };

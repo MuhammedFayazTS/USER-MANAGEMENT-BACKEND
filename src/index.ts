@@ -9,9 +9,12 @@ import { errorHandler } from "./middleware/errorHandler";
 import { HTTPSTATUS } from "./config/http.config";
 import { asyncHandler } from "./middleware/asyncHandler";
 import { routes as initializeRoutes } from "./routes";
-import passport from "./middleware/passport";
+import {initializePassport} from "./middleware/passport";
 import morgan from "morgan";
 import logger from "./common/utils/logger";
+import session from "express-session"; 
+import passport from "passport";
+import { getSessionCookieOptions } from "./common/utils/cookie";
 
 const app = express();
 
@@ -24,7 +27,19 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(passport.initialize());
+
+// Set up session management with express-session
+app.use(
+  session({
+    secret: config.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: getSessionCookieOptions(),
+  })
+);
+
+app.use(initializePassport());
+app.use(passport.session());
 
 app.get(
   "/",

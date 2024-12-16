@@ -26,8 +26,7 @@ export class MfaService {
     let secretkey = user.userPreference?.twoFactorSecret;
 
     if (!secretkey) {
-      //change the name to company or brancd name
-      const secret = speakeasy.generateSecret({ name: "Auth Advanced" });
+      const secret = speakeasy.generateSecret({ name: "Nexus Flow" }); //company name
       secretkey = secret.base32;
       const userPreference = await db.UserPreference.findOne({
         where: { userId: user.id },
@@ -38,8 +37,8 @@ export class MfaService {
 
     const url = speakeasy.otpauthURL({
       secret: secretkey,
-      label: `${user.name}`,
-      issuer: "authAdvanced.com", //update with the company,
+      label: `${user.firstName} ${user.lastName}`,
+      issuer: "nexusFlow-dev.com", //update with the company,
       encoding: "base32",
     });
 
