@@ -7,7 +7,12 @@ export type Models =
   | "VerificationCode"
   | "Role"
   | "Permission"
-  | "RolePermission";
+  | "RolePermission"
+  | "Group"
+  | "GroupRole"
+  | "UserGroup"
+  | "Module" 
+  ;
 
 type ModelProps = {
   [M in Models]: {
