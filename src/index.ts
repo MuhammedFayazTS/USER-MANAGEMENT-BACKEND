@@ -9,12 +9,13 @@ import { errorHandler } from "./middleware/errorHandler";
 import { HTTPSTATUS } from "./config/http.config";
 import { asyncHandler } from "./middleware/asyncHandler";
 import { routes as initializeRoutes } from "./routes";
-import {initializePassport} from "./middleware/passport";
+import { initializePassport } from "./middleware/passport";
 import morgan from "morgan";
 import logger from "./common/utils/logger";
-import session from "express-session"; 
+import session from "express-session";
 import passport from "passport";
 import { getSessionCookieOptions } from "./common/utils/cookie";
+import paginate from "express-paginate";
 
 const app = express();
 
@@ -40,6 +41,8 @@ app.use(
 
 app.use(initializePassport());
 app.use(passport.session());
+
+app.use(paginate.middleware(10, 50));
 
 app.get(
   "/",
