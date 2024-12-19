@@ -1,6 +1,7 @@
 "use strict";
 
 const { DataTypes } = require("sequelize");
+const { baseMigration } = require('../base.migration.ts');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -29,19 +30,7 @@ module.exports = {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
-      createdAt: {
-        allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-        type: Sequelize.DATE,
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-      },
-      deletedAt: {
-        allowNull: true,
-        type: Sequelize.DATE,
-      },
+      ...baseMigration
     });
   },
   async down(queryInterface, Sequelize) {
