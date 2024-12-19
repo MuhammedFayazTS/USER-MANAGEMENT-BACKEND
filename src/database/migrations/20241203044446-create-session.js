@@ -1,6 +1,8 @@
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
 
+const { baseMigration } = require('../base.migration.ts');
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Sessions', {
@@ -27,15 +29,7 @@ module.exports = {
         type: Sequelize.DATE,
         required: true,
       },
-      createdAt: {
-        type: Sequelize.DATE,
-        required: true,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-      },
+      ...baseMigration
     });
   },
   async down(queryInterface, Sequelize) {
