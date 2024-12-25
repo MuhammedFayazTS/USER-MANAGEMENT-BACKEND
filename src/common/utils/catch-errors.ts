@@ -44,3 +44,23 @@ export class HttpException extends AppError {
     super(message, statusCode, errorCode);
   }
 }
+
+export class PermissionNotFoundException extends AppError {
+  constructor(message = "Permission Not Found", errorCode?: ErrorCode) {
+    super(
+      message,
+      HTTPSTATUS.NOT_FOUND,
+      errorCode || ErrorCode.PERMISSION_NOT_FOUND
+    );
+  }
+}
+
+export class PermissionDeleteNotAllowedException extends AppError {
+  constructor(errorCode?: ErrorCode) {
+    super(
+      "Permission cannot be deleted because it is currently in use.",
+      HTTPSTATUS.BAD_REQUEST,
+      errorCode || ErrorCode.PERMISSION_DELETE_NOT_ALLOWED
+    );
+  }
+}
