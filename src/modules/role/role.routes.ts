@@ -5,8 +5,10 @@ const roleRoutes = Router();
 
 roleRoutes.get("/", roleController.getAllRoles);
 roleRoutes.get("/select", roleController.getRolesForSelect);
+roleRoutes.get("/permissions/:id", roleController.getRolePermissions);
 roleRoutes.get("/:id", roleController.getRole);
 roleRoutes.post("/", roleController.createRole);
+roleRoutes.put("/permissions/:id", roleController.updateRolePermissions);
 roleRoutes.put("/:id", roleController.updateRole);
 roleRoutes.delete("/:id", roleController.deleteRole);
 

@@ -26,7 +26,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
         through: models.RolePermission,
         foreignKey: "permissionId",
         otherKey: "roleId",
-        as: "roles",
+        as: "role",
       });
       Permission.belongsTo(models.Module, {
         foreignKey: "moduleId",

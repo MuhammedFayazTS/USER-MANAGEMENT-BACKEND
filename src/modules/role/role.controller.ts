@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../middleware/asyncHandler";
 import { RoleService } from "./role.service";
-import { roleSchema } from "../../common/validators/role.validatior";
+import {
+  rolePermissionSchema,
+  roleSchema,
+} from "../../common/validators/role.validatior";
 import { HTTPSTATUS } from "../../config/http.config";
 import { assertDefined, getPaginationInfo } from "../../common/utils/common";
 
@@ -80,4 +83,32 @@ export class RoleController {
       message: "Role deleted successfully",
     });
   });
+
+  public updateRolePermissions = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { id } = req.params;
+      assertDefined(id, "Role id does not exist");
+      const body = rolePermissionSchema.parse(req.body);
+      const updatedRolePermissions =
+        await this.roleService.updateRolePermissions(id, body);
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Role permissions updated successfully",
+        permissions: updatedRolePermissions,
+      });
+    }
+  );
+
+  public getRolePermissions = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { id } = req.params;
+      assertDefined(id, "Role id not found");
+      const permissions = await this.roleService.getRolePermissions(id);
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "All roles are listed successfully",
+        permissions,
+      });
+    }
+  );
 }
