@@ -3,7 +3,11 @@ import { DefaultQueryParams } from "../../common/interfaces/query.interface";
 import db from "../../database/database";
 import { RoleAttributes } from "../../database/models/role.model";
 import { FilterBuilder } from "../../common/utils/filter-builder";
-import { NotFoundException } from "../../common/utils/catch-errors";
+import {
+  NotFoundException,
+  PermissionNotFoundException,
+  RoleDeleteNotAllowedException,
+} from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { UpdateRolePermissionInput } from "../../common/interfaces/permission.interface";
 import { PermissionAttributes } from "../../database/models/permission.model";
@@ -45,8 +49,8 @@ export class RoleService {
 
     if (!role) {
       throw new NotFoundException(
-        "User does not exist",
-        ErrorCode.RESOURCE_NOT_FOUND
+        "Role does not exist",
+        ErrorCode.ROLE_NOT_FOUND
       );
     }
 
@@ -64,8 +68,8 @@ export class RoleService {
 
     if (!existingRole) {
       throw new NotFoundException(
-        "User does not exist",
-        ErrorCode.RESOURCE_NOT_FOUND
+        "Role does not exist",
+        ErrorCode.ROLE_NOT_FOUND
       );
     }
 
@@ -73,6 +77,10 @@ export class RoleService {
   }
 
   public async deleteRole(id: number | string) {
+    const usage = await this.checkRoleUsage(id);
+    if (usage) {
+      throw new RoleDeleteNotAllowedException();
+    }
     const deletedRole = await db.Role.destroy({
       where: { id },
     });
@@ -80,73 +88,93 @@ export class RoleService {
     return deletedRole;
   }
 
-  // Method to update role permissions
   public async updateRolePermissions(
     roleId: string,
     request: UpdateRolePermissionInput
   ): Promise<PermissionAttributes[]> {
-    // Ensure role exists
-    const role = await this.getRole(roleId);
-    if (!role) {
-      throw new NotFoundException("Role not found.");
+    const transaction = await db.createDBTransaction();
+    try {
+      const role = await this.getRole(roleId);
+      if (!role) {
+        throw new NotFoundException(
+          "Role not found.",
+          ErrorCode.ROLE_NOT_FOUND
+        );
+      }
+
+      const existingRolePermissions = await this.getRolePermissions(roleId);
+      const permissionsInRequest = (await db.Permission.findAll({
+        where: { id: request.permissions },
+      })) as unknown as PermissionAttributes[];
+
+      const validPermissions = new Set(permissionsInRequest.map((p) => p.id));
+      if (permissionsInRequest.length !== request.permissions.length) {
+        const notFoundId = request.permissions
+          .filter((p) => !validPermissions.has(+p))
+          .toString();
+
+        throw new PermissionNotFoundException(
+          `Permission ${notFoundId} not found.`
+        );
+      }
+
+      const permissionsToBeRemoved = existingRolePermissions
+        .filter((p) => !validPermissions.has(p.id))
+        .map((p) => ({ roleId: roleId, permissionId: p.id }));
+
+      if (permissionsToBeRemoved.length > 0) {
+        await db.RolePermission.destroy({
+          where: {
+            roleId: roleId,
+            permissionId: permissionsToBeRemoved.map((p) => p.permissionId),
+          },
+          transaction,
+        });
+      }
+
+      const newPermissions = request.permissions.map((permissionId) => ({
+        roleId: roleId,
+        permissionId: permissionId,
+      }));
+
+      await db.RolePermission.bulkCreate(newPermissions);
+
+      const updatedRolePermissions = await this.getRolePermissions(roleId);
+      return updatedRolePermissions;
+    } catch (error) {
+      if (transaction) {
+        await transaction.rollback();
+      }
+      throw error;
     }
-
-    // Get the role's existing permissions
-    const existingRolePermissions = await this.getRolePermissions(roleId);
-    const permissionsInRequest = await db.Permission.findAll({
-      where: { id: request.permissions },
-    }) as unknown as PermissionAttributes[];
-
-    // Validate that all requested permissions exist
-    const validPermissions = new Set(permissionsInRequest.map((p) => p.id));
-    if (permissionsInRequest.length !== request.permissions.length) {
-    const notFoundId = request.permissions.filter((p) => !validPermissions.has(p)).toString()
-
-      throw new NotFoundException(
-        `Permission ${notFoundId} not found.`
-      );
-    }
-
-    // Permissions to remove from the role
-    const permissionsToBeRemoved = existingRolePermissions
-      .filter((p) => !validPermissions.has(p.id))
-      .map((p) => ({ roleId: roleId, permissionId: p.id }));
-
-    // Remove the old role permissions
-    if (permissionsToBeRemoved.length > 0) {
-      await db.RolePermission.destroy({
-        where: {
-          roleId: roleId,
-          permissionId: permissionsToBeRemoved.map((p) => p.permissionId),
-        },
-      });
-    }
-
-    // Add new role permissions
-    const newPermissions = request.permissions.map((permissionId) => ({
-      roleId: roleId,
-      permissionId: permissionId,
-    }));
-
-    // Create new role permissions
-    await db.RolePermission.bulkCreate(newPermissions);
-
-    // Get the updated permissions for the role
-    const updatedRolePermissions = await this.getRolePermissions(roleId);
-    return updatedRolePermissions;
   }
 
-  // Method to get role permissions
   private async getRolePermissions(
     roleId: string
   ): Promise<PermissionAttributes[]> {
     const rolePermissions = await db.Permission.findAll({
       include: {
-        model: db.RolePermission,
-        where: { roleId },
-        attributes: ["permissionId"],
+        model: db.Role,
+        where: { id: roleId },
+        through: {
+          attributes: [],
+        },
+        as: "role",
       },
     });
     return rolePermissions;
+  }
+
+  private async checkRoleUsage(roleId: number | string): Promise<boolean> {
+    const roleCount = await db.RolePermission.count({
+      where: { roleId },
+    });
+    const groupRoleCount = await db.GroupRole.count({
+      where: { roleId },
+    });
+    const userRole = await db.User.count({
+      where: { roleId },
+    });
+    return roleCount + groupRoleCount + userRole > 0;
   }
 }

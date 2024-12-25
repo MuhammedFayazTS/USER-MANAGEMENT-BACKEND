@@ -33,7 +33,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
   RolePermission.init(
     {
       roleId: DataTypes.INTEGER,
-      permisionId: DataTypes.INTEGER,
+      permissionId: DataTypes.INTEGER,
     },
     {
       sequelize,

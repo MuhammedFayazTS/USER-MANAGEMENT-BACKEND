@@ -64,3 +64,13 @@ export class PermissionDeleteNotAllowedException extends AppError {
     );
   }
 }
+
+export class RoleDeleteNotAllowedException extends AppError {
+  constructor(errorCode?: ErrorCode) {
+    super(
+      "Role cannot be deleted because it is currently in use.",
+      HTTPSTATUS.BAD_REQUEST,
+      errorCode || ErrorCode.ROLE_DELETE_NOT_ALLOWED
+    );
+  }
+}
