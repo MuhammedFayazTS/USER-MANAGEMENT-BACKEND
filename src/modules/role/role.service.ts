@@ -149,7 +149,7 @@ export class RoleService {
     }
   }
 
-  private async getRolePermissions(
+  public async getRolePermissions(
     roleId: string
   ): Promise<PermissionAttributes[]> {
     const rolePermissions = await db.Permission.findAll({
