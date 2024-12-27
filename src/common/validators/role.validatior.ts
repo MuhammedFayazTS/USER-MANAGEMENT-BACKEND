@@ -1,4 +1,3 @@
-import { permission } from "process";
 import { z } from "zod";
 
 const nameSchema = z.string().trim().min(6).max(255);

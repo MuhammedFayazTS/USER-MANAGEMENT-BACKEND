@@ -6,6 +6,7 @@ import { authenticateJwt } from "./common/strategies/jwt.strategy";
 import mfaRoutes from "./modules/mfa/mfa.routes";
 import roleRoutes from "./modules/role/role.routes";
 import permissionRoutes from "./modules/permission/permisiion.routes";
+import moduleRoutes from "./modules/module/module.routes";
 
 export const routes = (app: express.Application) => {
   const BASE_PATH = config.BASE_PATH;
@@ -15,4 +16,5 @@ export const routes = (app: express.Application) => {
   app.use(`${BASE_PATH}/session`, authenticateJwt, sessionRoutes);
   app.use(`${BASE_PATH}/roles`, authenticateJwt, roleRoutes);
   app.use(`${BASE_PATH}/permissions`, authenticateJwt, permissionRoutes);
+  app.use(`${BASE_PATH}/modules`, authenticateJwt, moduleRoutes);
 };

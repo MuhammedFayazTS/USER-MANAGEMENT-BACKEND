@@ -6,4 +6,5 @@ export interface DefaultQueryParams {
   sort?: string;
   order?: "ASC" | "DESC";
   attributes?: Array<string>;
+  isActive?: boolean;
 }

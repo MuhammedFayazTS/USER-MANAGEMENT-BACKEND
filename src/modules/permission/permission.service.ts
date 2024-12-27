@@ -53,6 +53,9 @@ export class PermissionService {
     const roleCount = await db.RolePermission.count({
       where: { permissionId },
     });
-    return roleCount > 0;
+    const moduleCount = await db.ModulePermission.count({
+      where: { permissionId },
+    });
+    return roleCount + moduleCount > 0;
   }
 }
