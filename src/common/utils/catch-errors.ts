@@ -74,3 +74,13 @@ export class RoleDeleteNotAllowedException extends AppError {
     );
   }
 }
+
+export class ModuleDeleteNotAllowedException extends AppError {
+  constructor(errorCode?: ErrorCode) {
+    super(
+      "Module cannot be deleted because it is currently in use.",
+      HTTPSTATUS.BAD_REQUEST,
+      errorCode || ErrorCode.MODULE_DELETE_NOT_ALLOWED
+    );
+  }
+}

@@ -12,13 +12,13 @@ export class FilterBuilder {
 
   buildFilters() {
     if (!this.queryParams) {
-        return {
-          order: [["id","DESC"]],
-          limit: 10,
-          attributes: undefined,
-          where: {},
-        };
-      }
+      return {
+        order: [["id", "DESC"]],
+        limit: 10,
+        attributes: undefined,
+        where: {},
+      };
+    }
 
     const {
       order: queryOrder = "DESC",
@@ -26,6 +26,7 @@ export class FilterBuilder {
       limit = 10,
       attributes,
       search,
+      isActive,
     } = this.queryParams;
 
     const order = [[sort, queryOrder]]; // Order by column and direction
@@ -37,6 +38,10 @@ export class FilterBuilder {
         [field]: { [Op.like]: `%${search}%` },
       }));
       where[Op.or] = searchConditions;
+    }
+
+    if (isActive) {
+      where.isActive = isActive;
     }
 
     return { order, limit: Number(limit), attributes, where };

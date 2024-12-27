@@ -12,6 +12,7 @@ export type Models =
   | "GroupRole"
   | "UserGroup"
   | "Module" 
+  | "ModulePermission" 
   ;
 
 type ModelProps = {

@@ -21,7 +21,14 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     isActive!: boolean;
     createdAt?: Date;
     updatedAt?: Date;
-    static associate(models: any) {}
+    static associate(models: any) {
+      Module.belongsToMany(models.Permission, {
+        through: models.ModulePermission,
+        foreignKey: "moduleId",
+        otherKey: "permissionId",
+        as: "permissions",
+      });
+    }
   }
   Module.init(
     {
