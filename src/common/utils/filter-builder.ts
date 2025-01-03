@@ -21,21 +21,24 @@ export class FilterBuilder {
     }
 
     const {
-      order: queryOrder = "DESC",
-      sort = "id",
+      sort = "id.DESC",
       limit = 10,
+      page = 1,
       attributes,
       search,
       isActive,
     } = this.queryParams;
 
-    const order = [[sort, queryOrder]]; // Order by column and direction
-    const where: any = {};
+    const sortArray = sort.split(".");
 
+    const order = [[sortArray[0], sortArray[1]]]; // Order by column and direction
+    const where: any = {};
     // Build search conditions
     if (search && this.searchFields.length > 0) {
       const searchConditions = this.searchFields.map((field) => ({
-        [field]: { [Op.like]: `%${search}%` },
+        [Sequelize.fn("LOWER", Sequelize.col(field))]: {
+          [Op.like]: `%${search.toLowerCase()}%`,
+        },
       }));
       where[Op.or] = searchConditions;
     }
@@ -44,6 +47,8 @@ export class FilterBuilder {
       where.isActive = isActive;
     }
 
-    return { order, limit: Number(limit), attributes, where };
+    const offset = (+page - 1) * limit;
+
+    return { order, limit: Number(limit), attributes, where, offset };
   }
 }

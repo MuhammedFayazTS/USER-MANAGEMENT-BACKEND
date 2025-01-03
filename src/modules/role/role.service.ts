@@ -12,6 +12,8 @@ import { ErrorCode } from "../../common/enums/error-code.enum";
 import { UpdateRolePermissionInput } from "../../common/interfaces/permission.interface";
 import { PermissionAttributes } from "../../database/models/permission.model";
 import { RolePermissionAttributes } from "../../database/models/rolepermission.model";
+import { NewRole } from "../../common/interfaces/role.interface";
+import { assertDefined } from "../../common/utils/common";
 
 export class RoleService {
   public async getAllRoles(
@@ -19,13 +21,21 @@ export class RoleService {
     skip?: number | undefined
   ) {
     const filterBuilder = new FilterBuilder(query, ["name", "description"]);
-    const { order, where, limit, attributes } = filterBuilder.buildFilters();
+    const { order, where, limit, attributes, offset } =
+      filterBuilder.buildFilters();
     const roles = await db.Role.findAndCountAll({
       where,
       attributes: attributes || ["id", "name", "description"],
+      include: [
+        {
+          model: db.Permission,
+          attributes: ["name", "description"],
+          as: "permissions",
+        },
+      ],
       order,
       limit,
-      offset: skip,
+      offset,
     });
 
     return roles;
@@ -45,6 +55,13 @@ export class RoleService {
   public async getRole(id: number | string) {
     const role = await db.Role.findOne({
       where: { id },
+      include: [
+        {
+          model: db.Permission,
+          attributes: ["id", "name", "description"],
+          as: 'permissions'
+        },
+      ],
     });
 
     if (!role) {
@@ -57,8 +74,21 @@ export class RoleService {
     return role;
   }
 
-  public async createRole(role: RoleAttributes) {
-    return await db.Role.create(role);
+  public async createRole(role: NewRole) {
+    const newRole = await db.Role.create(role);
+    assertDefined(newRole.id, "Role does not exist");
+
+    if (role.permissions && newRole) {
+      const permissionIds = role.permissions
+        ?.map((permission) => permission.id)
+        .filter((id): id is number => id !== undefined && id !== null);
+      if (!permissionIds) return;
+      await this.updateRolePermissions(newRole.id, {
+        permissions: permissionIds,
+      });
+    }
+
+    return this.getRolePermissions(newRole.id);
   }
 
   public async updateRole(id: number | string, newRole: RoleAttributes) {
@@ -89,7 +119,7 @@ export class RoleService {
   }
 
   public async updateRolePermissions(
-    roleId: string,
+    roleId: number | string,
     request: UpdateRolePermissionInput
   ): Promise<PermissionAttributes[]> {
     const transaction = await db.createDBTransaction();
@@ -102,7 +132,7 @@ export class RoleService {
         );
       }
 
-      const existingRolePermissions = await this.getRolePermissions(roleId);
+      const existingRolePermissions = await this.getRolePermissions(+roleId);
       const permissionsInRequest = (await db.Permission.findAll({
         where: { id: request.permissions },
       })) as unknown as PermissionAttributes[];
@@ -139,7 +169,7 @@ export class RoleService {
 
       await db.RolePermission.bulkCreate(newPermissions);
 
-      const updatedRolePermissions = await this.getRolePermissions(roleId);
+      const updatedRolePermissions = await this.getRolePermissions(+roleId);
       return updatedRolePermissions;
     } catch (error) {
       if (transaction) {
@@ -150,7 +180,7 @@ export class RoleService {
   }
 
   public async getRolePermissions(
-    roleId: string
+    roleId: number
   ): Promise<PermissionAttributes[]> {
     const rolePermissions = await db.Permission.findAll({
       include: {
