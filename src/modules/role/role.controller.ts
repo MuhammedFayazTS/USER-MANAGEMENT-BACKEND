@@ -7,6 +7,7 @@ import {
 } from "../../common/validators/role.validatior";
 import { HTTPSTATUS } from "../../config/http.config";
 import { assertDefined, getPaginationInfo } from "../../common/utils/common";
+import { PermissionAttributes } from "../../database/models/permission.model";
 
 export class RoleController {
   private roleService: RoleService;
@@ -15,9 +16,9 @@ export class RoleController {
   }
 
   public createRole = asyncHandler(async (req: Request, res: Response) => {
-    const { name, description } = roleSchema.parse(req.body);
+    const { name, description,permissions } = roleSchema.parse(req.body);
 
-    const role = await this.roleService.createRole({ name, description });
+    const role = await this.roleService.createRole({ name, description ,permissions: permissions as PermissionAttributes[] });
 
     return res.status(HTTPSTATUS.CREATED).json({
       message: "Role created successfully",
@@ -103,7 +104,7 @@ export class RoleController {
     async (req: Request, res: Response) => {
       const { id } = req.params;
       assertDefined(id, "Role id not found");
-      const permissions = await this.roleService.getRolePermissions(id);
+      const permissions = await this.roleService.getRolePermissions(+id);
 
       return res.status(HTTPSTATUS.OK).json({
         message: "All roles are listed successfully",

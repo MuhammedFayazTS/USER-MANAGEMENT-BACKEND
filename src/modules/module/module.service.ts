@@ -21,6 +21,13 @@ export class ModuleService {
     const modules = await db.Module.findAndCountAll({
       where,
       attributes: attributes || ["id", "name", "slug", "type", "isActive"],
+      include: [
+        {
+          model: db.Permission,
+          attributes: ["id", "name", "description"],
+          as: "permissions",
+        },
+      ],
       order,
       limit,
       offset: skip,

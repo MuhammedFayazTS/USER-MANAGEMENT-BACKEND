@@ -1,3 +1,4 @@
+import { UniqueConstraintError } from "sequelize";
 import { HTTPSTATUS, HttpStatusCode } from "../../config/http.config";
 import { ErrorCode } from "../enums/error-code.enum";
 import { AppError } from "./AppError";
@@ -81,6 +82,21 @@ export class ModuleDeleteNotAllowedException extends AppError {
       "Module cannot be deleted because it is currently in use.",
       HTTPSTATUS.BAD_REQUEST,
       errorCode || ErrorCode.MODULE_DELETE_NOT_ALLOWED
+    );
+  }
+}
+
+export class SequelizeUniqueConstraintException extends AppError {
+  constructor(error: UniqueConstraintError, errorCode?: ErrorCode) {
+    const field = Object.keys(error.fields)[0];
+    const message = field
+      ? `${field} already exists` 
+      : "Duplicate value for unique constraint";
+    
+    super(
+      message,
+      HTTPSTATUS.BAD_REQUEST,
+      errorCode || ErrorCode.DUPLICATE_ENTRY
     );
   }
 }
