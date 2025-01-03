@@ -6,6 +6,8 @@ import {
   clearAuthenticationCookies,
   REFRESH_PATH,
 } from "../common/utils/cookie";
+import { UniqueConstraintError, ValidationError } from "sequelize";
+import { SequelizeUniqueConstraintException } from "../common/utils/catch-errors";
 
 const formatZodError = (res: Response, error: ZodError) => {
   const errors = error?.issues?.map((err) => ({
@@ -17,6 +19,33 @@ const formatZodError = (res: Response, error: ZodError) => {
     message: "Validation failed",
     errors: errors,
   });
+};
+
+const formatSequelizeValidationError = (error: ValidationError) => {
+  return error.errors.map((err) => ({
+    field: err.path,
+    message: err.message,
+  }));
+};
+
+const formatSequelizeUniqueConstraintError = (error: UniqueConstraintError) => {
+  if (typeof error.fields === "object" && error.fields !== null) {
+    const fields = Object.keys(error.fields) as string[];
+
+    return [
+      {
+        field: fields.join(", "),
+        message: `${error.message}, Duplicate value for unique constraint`,
+      },
+    ];
+  }
+
+  return [
+    {
+      field: "unknown",
+      message: "Duplicate value for unique constraint",
+    },
+  ];
 };
 
 export const errorHandler: ErrorRequestHandler = (
@@ -47,6 +76,30 @@ export const errorHandler: ErrorRequestHandler = (
       errorCode: error.errorCode,
     });
   }
+
+  if (error instanceof ValidationError) {
+    const validationErrors = formatSequelizeValidationError(error);
+    return res.status(HTTPSTATUS.BAD_REQUEST).json({
+      message: "Validation failed",
+      errors: validationErrors,
+    });
+  }
+
+  if (error instanceof UniqueConstraintError) {
+    const uniqueConstraintException = new SequelizeUniqueConstraintException(
+      error
+    );
+    return res.status(uniqueConstraintException.statusCode).json({
+      message: uniqueConstraintException.message,
+      errors: [
+        {
+          field: Object.keys(error.fields)[0],
+          message: uniqueConstraintException.message,
+        },
+      ],
+    });
+  }
+
 
   return res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
     message: "Internal Server Error",
