@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { DefaultQueryParams } from "../interfaces/query.interface";
 
 export class FilterBuilder {
@@ -33,11 +33,12 @@ export class FilterBuilder {
 
     const order = [[sortArray[0], sortArray[1]]]; // Order by column and direction
     const where: any = {};
+    
     // Build search conditions
     if (search && this.searchFields.length > 0) {
       const searchConditions = this.searchFields.map((field) => ({
-        [Sequelize.fn("LOWER", Sequelize.col(field))]: {
-          [Op.like]: `%${search.toLowerCase()}%`,
+        [field]: {
+          [Op.iLike]: `%${search.toLowerCase()}%`,  // Case-insensitive search
         },
       }));
       where[Op.or] = searchConditions;

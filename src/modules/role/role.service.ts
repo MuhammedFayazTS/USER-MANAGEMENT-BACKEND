@@ -59,7 +59,7 @@ export class RoleService {
         {
           model: db.Permission,
           attributes: ["id", "name", "description"],
-          as: 'permissions'
+          as: "permissions",
         },
       ],
     });
@@ -77,21 +77,11 @@ export class RoleService {
   public async createRole(role: NewRole) {
     const newRole = await db.Role.create(role);
     assertDefined(newRole.id, "Role does not exist");
-
-    if (role.permissions && newRole) {
-      const permissionIds = role.permissions
-        ?.map((permission) => permission.id)
-        .filter((id): id is number => id !== undefined && id !== null);
-      if (!permissionIds) return;
-      await this.updateRolePermissions(newRole.id, {
-        permissions: permissionIds,
-      });
-    }
-
+    await this.insertRolePermissions(role.permissions, newRole.id);
     return this.getRolePermissions(newRole.id);
   }
 
-  public async updateRole(id: number | string, newRole: RoleAttributes) {
+  public async updateRole(id: number | string, newRole: NewRole) {
     const existingRole = await db.Role.findOne({
       where: { id },
     });
@@ -103,6 +93,7 @@ export class RoleService {
       );
     }
 
+    await this.insertRolePermissions(newRole.permissions, id);
     await existingRole.update(newRole);
   }
 
@@ -193,6 +184,31 @@ export class RoleService {
       },
     });
     return rolePermissions;
+  }
+
+  private insertRolePermissions = async (
+    permissions: PermissionAttributes[] | [],
+    roleId: string | number
+  ) => {
+    if (!roleId) return;
+
+    const permissionIds = permissions
+      ?.map((permission) => permission.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    if (!permissionIds || permissionIds.length === 0) return this.deleteRolePermissionsByRoleId(roleId);
+
+    await this.updateRolePermissions(roleId, {
+      permissions: permissionIds,
+    });
+  };
+
+  private async deleteRolePermissionsByRoleId(roleId: string | number) {
+    await db.RolePermission.destroy({
+      where: {
+        roleId,
+      },
+    });
   }
 
   private async checkRoleUsage(roleId: number | string): Promise<boolean> {

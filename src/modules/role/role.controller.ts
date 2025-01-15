@@ -29,9 +29,9 @@ export class RoleController {
   public updateRole = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     assertDefined(id, "Role id is not defined");
-    const { name, description } = roleSchema.parse(req.body);
+    const { name, description,permissions } = roleSchema.parse(req.body);
 
-    const role = await this.roleService.updateRole(id, { name, description });
+    const role = await this.roleService.updateRole(id, { name, description,permissions: permissions as PermissionAttributes[]  });
 
     return res.status(HTTPSTATUS.OK).json({
       message: "Role updated successfully",
