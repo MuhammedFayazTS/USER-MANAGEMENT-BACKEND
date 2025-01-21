@@ -32,6 +32,21 @@ export const resetPasswordSchema = z.object({
   verificationCode: verficationCodeSchema,
 });
 
+export const changePasswordSchema = z
+  .object({
+    oldPassword: passwordSchema,
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+  })
+  .refine((val) => val.password === val.confirmPassword, {
+    message: "Password does not match",
+    path: ["confirmPassword"],
+  })
+  .refine((val) => val.password !== val.oldPassword, {
+    message: "New password must not be same as old password",
+    path: ["oldPassword"],
+  });
+
 export const googleAuthSchema = z.object({
   email: z.string().email(),
   firstName: z.string().regex(/^[a-zA-Z ]*$/),

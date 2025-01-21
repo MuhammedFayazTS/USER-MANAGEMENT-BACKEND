@@ -10,10 +10,18 @@ authRoutes.post("/login", authController.login);
 authRoutes.post("/verify/email", authController.verifyEmail);
 authRoutes.post("/password/forgot", authController.forgotPassword);
 authRoutes.post("/password/reset", authController.resetPassword);
+authRoutes.post(
+  "/password/change",
+  authenticateJwt,
+  authController.changePassword
+);
 authRoutes.post("/logout", authenticateJwt, authController.logout);
 
 //google auth
-authRoutes.get("/google", passport.authenticate("google", { scope: ['profile', 'email'] }));
+authRoutes.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
 authRoutes.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/register" }),

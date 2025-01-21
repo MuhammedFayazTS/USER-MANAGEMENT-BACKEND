@@ -3,6 +3,7 @@ import { asyncHandler } from "../../middleware/asyncHandler";
 import { AuthService } from "./auth.service";
 import { HTTPSTATUS } from "../../config/http.config";
 import {
+  changePasswordSchema,
   emailSchema,
   googleAuthSchema,
   loginSchema,
@@ -24,6 +25,7 @@ import {
 import { GoogleAuthService } from "./google.service";
 import { GoogleLoginUser } from "../../common/strategies/google.strategy";
 import { config } from "../../config/app.config";
+import { assertDefined } from "../../common/utils/common";
 
 export class AuthController {
   private authService: AuthService;
@@ -140,6 +142,19 @@ export class AuthController {
 
       return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
         message: "Password reset successfully",
+      });
+    }
+  );
+
+  public changePassword = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const {oldPassword,password} = changePasswordSchema.parse(req.body);
+      const userId = req.user?.id;
+      assertDefined(userId, 'User id must be provided');
+      await this.authService.changePassword({oldPassword,password,userId});
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Password changed successfully",
       });
     }
   );
