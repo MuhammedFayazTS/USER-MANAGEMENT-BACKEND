@@ -5,11 +5,31 @@ import { uploadSingleMiddleware } from "../../middleware/multer";
 
 const roleRoutes = Router();
 
+
+roleRoutes.get(
+  "/",
+  authenticateJwt,
+  userController.getAllUsers
+);
+
+roleRoutes.get(
+  "/:id",
+  authenticateJwt,
+  userController.getUser
+);
+
 roleRoutes.post(
   "/create-with-temp-password",
   authenticateJwt,
   uploadSingleMiddleware("image"),
   userController.createUserWithTempPassword
+);
+
+roleRoutes.put(
+  "/:id",
+  authenticateJwt,
+  uploadSingleMiddleware("image"),
+  userController.updateUser
 );
 
 export default roleRoutes;

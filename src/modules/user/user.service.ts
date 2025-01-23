@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import {
   GoogleLoginUser,
   NewUser,
@@ -9,6 +9,10 @@ import { sendEmail } from "../../mailers/mailer";
 import { config } from "../../config/app.config";
 import { loginWithTempPassTemplate } from "../../mailers/templates/template";
 import logger from "../../common/utils/logger";
+import { DefaultQueryParams } from "../../common/interfaces/query.interface";
+import { FilterBuilder } from "../../common/utils/filter-builder";
+import { NotFoundException } from "../../common/utils/catch-errors";
+import { ErrorCode } from "../../common/enums/error-code.enum";
 
 export class UserService {
   public async findUserById(userId: number) {
@@ -71,6 +75,73 @@ export class UserService {
       await transaction.rollback();
       throw error;
     }
+  }
+
+  public async getAllUsers(query: DefaultQueryParams, userId: number) {
+    const filterBuilder = new FilterBuilder(query, ["firstName", "lastName"]);
+    const { order, where, limit, attributes, offset } =
+      filterBuilder.buildFilters();
+    where.id = { [Op.ne]: userId };
+    const users = await db.User.findAndCountAll({
+      where,
+      attributes: attributes || [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "isEmailVerified",
+        "image",
+        "roleId",
+      ],
+      include: [
+        {
+          model: db.UserPreference,
+          attributes: ["enable2FA", "emailNotification", "twoFactorSecret"],
+          as: "userPreference",
+        },
+        {
+          model: db.Role,
+          attributes: ["name"],
+          as: "role",
+        },
+      ],
+      order,
+      limit,
+      offset,
+    });
+
+    return users;
+  }
+
+  public async getUser(id: number | string) {
+    const user = await db.User.findOne({
+      where: { id },
+      include: [],
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        "User does not exist",
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
+
+    return user;
+  }
+
+  public async updateUser(id: number | string, newUser: NewUser) {
+    const existingUser = await db.User.findOne({
+      where: { id },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException(
+        "User does not exist",
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
+
+    await existingUser.update(newUser);
   }
 
   private createUserPreference = async (
