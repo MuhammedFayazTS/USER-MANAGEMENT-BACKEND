@@ -1,4 +1,4 @@
-import { Op, Transaction } from "sequelize";
+import { Op, Sequelize, Transaction } from "sequelize";
 import {
   GoogleLoginUser,
   NewUser,
@@ -13,6 +13,10 @@ import { DefaultQueryParams } from "../../common/interfaces/query.interface";
 import { FilterBuilder } from "../../common/utils/filter-builder";
 import { NotFoundException } from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
+
+interface UserQueryParams extends DefaultQueryParams {
+  roleId?: string;
+}
 
 export class UserService {
   public async findUserById(userId: number) {
@@ -77,11 +81,14 @@ export class UserService {
     }
   }
 
-  public async getAllUsers(query: DefaultQueryParams, userId: number) {
+  public async getAllUsers(query: UserQueryParams, userId: number) {
     const filterBuilder = new FilterBuilder(query, ["firstName", "lastName"]);
     const { order, where, limit, attributes, offset } =
       filterBuilder.buildFilters();
     where.id = { [Op.ne]: userId };
+    if(query?.roleId){
+      where.roleId = query.roleId
+    }
     const users = await db.User.findAndCountAll({
       where,
       attributes: attributes || [
@@ -92,6 +99,7 @@ export class UserService {
         "isEmailVerified",
         "image",
         "roleId",
+        [Sequelize.col("role.name"), "roleName"]
       ],
       include: [
         {
@@ -108,6 +116,7 @@ export class UserService {
       order,
       limit,
       offset,
+      raw: true,
     });
 
     return users;

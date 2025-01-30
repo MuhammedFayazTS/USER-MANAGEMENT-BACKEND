@@ -55,6 +55,7 @@ interface IFindOptions {
   paranoid?: any;
   group?: any;
   distinct?: any;
+  raw?: boolean;
 }
 
 export interface DBInterface extends ModelProps {
