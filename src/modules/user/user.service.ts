@@ -153,6 +153,14 @@ export class UserService {
     await existingUser.update(newUser);
   }
 
+  public async deleteUser(id: number | string) {
+    const deletedUser = await db.User.destroy({
+      where: { id },
+    });
+
+    return deletedUser;
+  }
+
   private createUserPreference = async (
     userId: number,
     transaction: Transaction

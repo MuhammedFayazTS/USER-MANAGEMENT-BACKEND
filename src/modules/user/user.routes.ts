@@ -32,4 +32,10 @@ roleRoutes.put(
   userController.updateUser
 );
 
+roleRoutes.delete(
+  "/:id",
+  authenticateJwt,
+  userController.deleteUser
+);
+
 export default roleRoutes;

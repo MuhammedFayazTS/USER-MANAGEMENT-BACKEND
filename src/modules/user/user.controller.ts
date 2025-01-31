@@ -79,4 +79,15 @@ export class UserController {
       user,
     });
   });
+
+  public deleteUser = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    assertDefined(id, "User id does not exist");
+
+    await this.userService.deleteUser(id);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "User deleted successfully",
+    });
+  });
 }
