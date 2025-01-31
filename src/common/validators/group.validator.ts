@@ -17,9 +17,7 @@ const descriptionSchema = z
 
 // Schema for roles associated with a group (optional)
 const rolesSchema = z
-  .array(z.number(), {
-    message: "Roles must be an array of role IDs",
-  })
+  .array(z.unknown()) // roles as an array of unknown objects
   .optional();
 
 // Schema for creating or updating a group

@@ -27,7 +27,7 @@ type ModelProps = {
     ) => Promise<any>;
     bulkCreate: (
       payload: {},
-      options?: { transaction?: Transaction; updateOnDuplicate: string[] }
+      options?: { transaction?: Transaction; updateOnDuplicate?: string[] }
     ) => Promise<any>;
     findOne: (params: IFindOptions) => Promise<any>;
     findAll: (params: IFindOptions) => Promise<any>;

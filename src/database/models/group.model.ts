@@ -26,6 +26,13 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
         otherKey: "userId",
         as: "users",
       });
+
+      Group.belongsToMany(models.Role, {
+        through: models.GroupRole,
+        foreignKey: "groupId",
+        otherKey: "roleId",
+        as: "roles",
+      });      
     }
   }
   Group.init(
