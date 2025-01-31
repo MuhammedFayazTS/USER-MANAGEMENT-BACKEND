@@ -3,6 +3,7 @@
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { VerificationEnum } from "../../common/enums/verification-code.enum";
 import {
+  ChangePasswordDto,
   LoginDto,
   RegisterDto,
   ResetPasswordDto,
@@ -363,6 +364,38 @@ export class AuthService {
         userId: user.id,
       },
     });
+
+    return { user };
+  }
+
+  public async changePassword({ userId,password,oldPassword }: ChangePasswordDto) {
+    const user = await db.User.findOne({
+      where: {
+          id:userId,
+      }
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        "User does not exist",
+        ErrorCode.AUTH_USER_NOT_FOUND
+      );
+    }
+
+    const isPasswordValid = await user.comparePassword(oldPassword);
+
+    if (!isPasswordValid) {
+      throw new BadRequestException(
+        "Invalid old password provided",
+        ErrorCode.AUTH_WRONG_PASSWORD
+      );
+    }
+
+    await user.update({ password });
+
+    if (!user) {
+      throw new BadRequestException("Failed to reset password");
+    }
 
     return { user };
   }

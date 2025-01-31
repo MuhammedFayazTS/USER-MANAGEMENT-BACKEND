@@ -39,6 +39,8 @@ app.use(
   })
 );
 
+app.use("/public", express.static("public"));
+
 app.use(initializePassport());
 app.use(passport.session());
 
