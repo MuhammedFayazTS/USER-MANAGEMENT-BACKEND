@@ -64,7 +64,7 @@ export class UserController {
     const inputParams = JSON.parse(req.body.inputParams);
     const { email, firstName, lastName, roleId } =
       newUserSchema.parse(inputParams);
-    const image = inputParams.image? inputParams.image : req.file?.path;
+    const image = inputParams.image ? inputParams.image : req.file?.path;
 
     const user = await this.userService.updateUser(id, {
       email,
@@ -90,4 +90,37 @@ export class UserController {
       message: "User deleted successfully",
     });
   });
+
+  public addUserToGroup = asyncHandler(async (req: Request, res: Response) => {
+    const { groupId } = req.params;
+    const userId = req.user?.id;
+    assertDefined(groupId, "Group id is not defined");
+    assertDefined(userId, "User id is not defined");
+
+    const user = await this.userService.addUserToGroup(+groupId, +userId);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "User added to group successfully",
+      user,
+    });
+  });
+
+  public removeUserFromGroup = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { groupId } = req.params;
+      const userId = req.user?.id;
+      assertDefined(groupId, "Group id is not defined");
+      assertDefined(userId, "User id is not defined");
+
+      const user = await this.userService.removeUserFromGroup(
+        +groupId,
+        +userId
+      );
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "User removed from group successfully",
+        user,
+      });
+    }
+  );
 }

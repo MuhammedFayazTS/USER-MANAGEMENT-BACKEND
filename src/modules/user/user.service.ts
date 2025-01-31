@@ -22,11 +22,23 @@ export class UserService {
   public async findUserById(userId: number) {
     const user = await db.User.scope("withoutPassword").findOne({
       where: { id: userId },
-      include: {
-        model: db.UserPreference,
-        attributes: ["userId", "enable2FA", "emailNotification"],
-        as: "userPreference",
-      },
+      include: [
+        {
+          model: db.UserPreference,
+          attributes: ["userId", "enable2FA", "emailNotification"],
+          as: "userPreference",
+        },
+        {
+          model: db.Role,
+          attributes: ["id", "name"],
+          as: "role",
+        },
+        {
+          model: db.Group,
+          attributes: ["id", "name"],
+          as: "groups",
+        },
+      ],
     });
     return user || null;
   }
@@ -34,11 +46,23 @@ export class UserService {
   public async findUserByEmail(email: string) {
     const user = await db.User.scope("withoutPassword").findOne({
       where: { email: email },
-      include: {
-        model: db.UserPreference,
-        attributes: ["userId", "enable2FA", "emailNotification"],
-        as: "userPreference",
-      },
+      include: [
+        {
+          model: db.UserPreference,
+          attributes: ["userId", "enable2FA", "emailNotification"],
+          as: "userPreference",
+        },
+        {
+          model: db.Role,
+          attributes: ["id", "name"],
+          as: "role",
+        },
+        {
+          model: db.Group,
+          attributes: ["id", "name"],
+          as: "groups",
+        },
+      ],
     });
     return user || null;
   }
@@ -86,8 +110,8 @@ export class UserService {
     const { order, where, limit, attributes, offset } =
       filterBuilder.buildFilters();
     where.id = { [Op.ne]: userId };
-    if(query?.roleId){
-      where.roleId = query.roleId
+    if (query?.roleId) {
+      where.roleId = query.roleId;
     }
     const users = await db.User.findAndCountAll({
       where,
@@ -99,7 +123,7 @@ export class UserService {
         "isEmailVerified",
         "image",
         "roleId",
-        [Sequelize.col("role.name"), "roleName"]
+        [Sequelize.col("role.name"), "roleName"],
       ],
       include: [
         {
@@ -159,6 +183,18 @@ export class UserService {
     });
 
     return deletedUser;
+  }
+
+  public async addUserToGroup(groupId: number, userId: number) {
+    await db.UserGroup.create({ groupId, userId });
+    return await this.findUserById(userId)
+  }
+
+  public async removeUserFromGroup(groupId: number, userId: number) {
+    await db.UserGroup.destroy({
+      where: { groupId, userId },
+    });
+    return await this.findUserById(userId)
   }
 
   private createUserPreference = async (
