@@ -6,4 +6,5 @@ export const newUserSchema = z.object({
   lastName: z.string().trim().min(1).max(255),
   email: emailSchema,
   roleId: z.number(),
+  groups: z.array(z.unknown()).optional(),
 });

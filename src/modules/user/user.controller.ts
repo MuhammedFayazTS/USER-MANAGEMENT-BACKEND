@@ -4,6 +4,7 @@ import { UserService } from "./user.service";
 import { newUserSchema } from "../../common/validators/user.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { assertDefined, getPaginationInfo } from "../../common/utils/common";
+import { GroupAttributes } from "../../database/models/group.model";
 
 export class UserController {
   private userService: UserService;
@@ -14,7 +15,7 @@ export class UserController {
   public createUserWithTempPassword = asyncHandler(
     async (req: Request, res: Response) => {
       const inputParams = JSON.parse(req.body.inputParams);
-      const { email, firstName, lastName, roleId } =
+      const { email, firstName, lastName, roleId, groups } =
         newUserSchema.parse(inputParams);
       const image = req.file?.path;
 
@@ -24,6 +25,7 @@ export class UserController {
         lastName,
         roleId,
         image,
+        groups: groups as unknown as GroupAttributes[],
       });
 
       return res.status(HTTPSTATUS.CREATED).json({
