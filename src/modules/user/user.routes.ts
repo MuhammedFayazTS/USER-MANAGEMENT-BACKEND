@@ -26,6 +26,18 @@ roleRoutes.post(
 );
 
 roleRoutes.put(
+  "/group/:groupId",
+  authenticateJwt,
+  userController.addUserToGroup
+);
+
+roleRoutes.delete(
+  "/group/:groupId",
+  authenticateJwt,
+  userController.removeUserFromGroup
+);
+
+roleRoutes.put(
   "/:id",
   authenticateJwt,
   uploadSingleMiddleware("image"),

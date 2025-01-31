@@ -1,3 +1,5 @@
+import { GroupAttributes } from "../../database/models/group.model";
+
 export interface NewUser {
     firstName: string;
     lastName?: string;
@@ -8,6 +10,7 @@ export interface NewUser {
     externalUserId?:string
     isEmailVerified?:boolean
     origin?: string;
+    groups?:GroupAttributes[]
   }
 
   export interface GoogleLoginUser {
@@ -18,5 +21,6 @@ export interface NewUser {
     externalUserId: string;
     isEmailVerified: boolean;
     origin: "google";
+    groups?:GroupAttributes[]
   }
   

@@ -13,6 +13,8 @@ import { DefaultQueryParams } from "../../common/interfaces/query.interface";
 import { FilterBuilder } from "../../common/utils/filter-builder";
 import { NotFoundException } from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
+import { GroupAttributes } from "../../database/models/group.model";
+import { UserGroupAttributes } from "../../database/models/usergroup.model";
 
 interface UserQueryParams extends DefaultQueryParams {
   roleId?: string;
@@ -22,11 +24,23 @@ export class UserService {
   public async findUserById(userId: number) {
     const user = await db.User.scope("withoutPassword").findOne({
       where: { id: userId },
-      include: {
-        model: db.UserPreference,
-        attributes: ["userId", "enable2FA", "emailNotification"],
-        as: "userPreference",
-      },
+      include: [
+        {
+          model: db.UserPreference,
+          attributes: ["userId", "enable2FA", "emailNotification"],
+          as: "userPreference",
+        },
+        {
+          model: db.Role,
+          attributes: ["id", "name"],
+          as: "role",
+        },
+        {
+          model: db.Group,
+          attributes: ["id", "name"],
+          as: "groups",
+        },
+      ],
     });
     return user || null;
   }
@@ -34,18 +48,42 @@ export class UserService {
   public async findUserByEmail(email: string) {
     const user = await db.User.scope("withoutPassword").findOne({
       where: { email: email },
-      include: {
-        model: db.UserPreference,
-        attributes: ["userId", "enable2FA", "emailNotification"],
-        as: "userPreference",
-      },
+      include: [
+        {
+          model: db.UserPreference,
+          attributes: ["userId", "enable2FA", "emailNotification"],
+          as: "userPreference",
+        },
+        {
+          model: db.Role,
+          attributes: ["id", "name"],
+          as: "role",
+        },
+        {
+          model: db.Group,
+          attributes: ["id", "name"],
+          as: "groups",
+        },
+      ],
     });
     return user || null;
   }
 
   public async createUser(userDetails: GoogleLoginUser | NewUser) {
-    const user = await db.User.create(userDetails);
-    return user;
+    const transaction = await db.createDBTransaction();
+    try {
+      const user = await db.User.create(userDetails);
+      const { groups } = userDetails;
+      if (groups && groups.length > 0) {
+        await this.insertUserGroups(user.id, groups, transaction);
+      }
+
+      await transaction.commit();
+      return user;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   public async createUserWithTempPassword(userDetails: NewUser) {
@@ -60,6 +98,12 @@ export class UserService {
 
       const loginUrl = `${config.APP_ORIGIN}/?email=${newUser.email}&tempPass=${tempPassword}`;
       logger.debug(`Generated Login URL for user: ${newUser.email}`);
+
+      //insert user to group
+      const { groups } = userDetails;
+      if (groups && groups.length > 0) {
+        await this.insertUserGroups(newUser.id, groups, transaction);
+      }
 
       await sendEmail({
         to: newUser.email,
@@ -86,8 +130,8 @@ export class UserService {
     const { order, where, limit, attributes, offset } =
       filterBuilder.buildFilters();
     where.id = { [Op.ne]: userId };
-    if(query?.roleId){
-      where.roleId = query.roleId
+    if (query?.roleId) {
+      where.roleId = query.roleId;
     }
     const users = await db.User.findAndCountAll({
       where,
@@ -99,7 +143,7 @@ export class UserService {
         "isEmailVerified",
         "image",
         "roleId",
-        [Sequelize.col("role.name"), "roleName"]
+        [Sequelize.col("role.name"), "roleName"],
       ],
       include: [
         {
@@ -161,6 +205,18 @@ export class UserService {
     return deletedUser;
   }
 
+  public async addUserToGroup(groupId: number, userId: number) {
+    await db.UserGroup.create({ groupId, userId });
+    return await this.findUserById(userId);
+  }
+
+  public async removeUserFromGroup(groupId: number, userId: number) {
+    await db.UserGroup.destroy({
+      where: { groupId, userId },
+    });
+    return await this.findUserById(userId);
+  }
+
   private createUserPreference = async (
     userId: number,
     transaction: Transaction
@@ -174,4 +230,34 @@ export class UserService {
       }
     );
   };
+
+  private async insertUserGroups(
+    userId: number,
+    groups: GroupAttributes[],
+    transaction: Transaction
+  ) {
+    if (!userId) return;
+
+    const existingUserGroups = await db.UserGroup.findAll({
+      where: { userId },
+      transaction,
+    });
+
+    const newGroups = groups.filter(
+      (group) =>
+        !existingUserGroups.some(
+          (existingGroup: UserGroupAttributes) =>
+            existingGroup.groupId === group.id
+        )
+    );
+
+    const groupUserIds = newGroups.map((group) => ({
+      userId,
+      groupId: group.id,
+    }));
+
+    if (groupUserIds.length > 0) {
+      await db.UserGroup.bulkCreate(groupUserIds, { transaction });
+    }
+  }
 }
