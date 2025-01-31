@@ -19,12 +19,16 @@ const descriptionSchema = z
 const rolesSchema = z
   .array(z.unknown()) // roles as an array of unknown objects
   .optional();
+const usersSchema = z
+  .array(z.unknown()) // users as an array of unknown objects
+  .optional();
 
 // Schema for creating or updating a group
 export const groupSchema = z.object({
   name: nameSchema,
   description: descriptionSchema,
   roles: rolesSchema,
+  users: usersSchema,
 });
 
 // Schema for adding or removing roles from a group

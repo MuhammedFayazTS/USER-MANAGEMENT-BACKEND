@@ -6,6 +6,7 @@ import { assertDefined, getPaginationInfo } from "../../common/utils/common";
 import { groupSchema } from "../../common/validators/group.validator";
 import { any, unknown } from "zod";
 import { RoleAttributes } from "../../database/models/role.model";
+import { UserAttributes } from "../../database/models/user.model";
 
 export class GroupController {
   private groupService: GroupService;
@@ -14,12 +15,13 @@ export class GroupController {
   }
 
   public createGroup = asyncHandler(async (req: Request, res: Response) => {
-    const { name, description, roles } = groupSchema.parse(req.body);
+    const { name, description, roles, users } = groupSchema.parse(req.body);
 
     const group = await this.groupService.createGroup({
       name,
       description,
       roles: roles as unknown as RoleAttributes[],
+      users: users as unknown as UserAttributes[],
     });
 
     return res.status(HTTPSTATUS.CREATED).json({
@@ -31,12 +33,13 @@ export class GroupController {
   public updateGroup = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     assertDefined(id, "Group id is not defined");
-    const { name, description, roles } = groupSchema.parse(req.body);
+    const { name, description, roles, users } = groupSchema.parse(req.body);
 
     const group = await this.groupService.updateGroup(id, {
       name,
       description,
       roles: roles as unknown as RoleAttributes[],
+      users: users as unknown as UserAttributes[],
     });
 
     return res.status(HTTPSTATUS.OK).json({
@@ -113,6 +116,32 @@ export class GroupController {
 
       return res.status(HTTPSTATUS.OK).json({
         message: "Role removed from group successfully",
+      });
+    }
+  );
+
+  public addUserToGroup = asyncHandler(async (req: Request, res: Response) => {
+    const { groupId, userId } = req.params;
+    assertDefined(groupId, "Group id is not defined");
+    assertDefined(userId, "User id is not defined");
+
+    await this.groupService.addUserToGroup(+groupId, +userId);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "User added to group successfully",
+    });
+  });
+
+  public removeUserFromGroup = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { groupId, userId } = req.params;
+      assertDefined(groupId, "Group id is not defined");
+      assertDefined(userId, "User id is not defined");
+
+      await this.groupService.removeUserFromGroup(+groupId, +userId);
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "User removed from group successfully",
       });
     }
   );

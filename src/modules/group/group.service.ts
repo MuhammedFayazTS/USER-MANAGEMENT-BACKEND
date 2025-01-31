@@ -8,6 +8,8 @@ import { NewGroup } from "../../common/interfaces/group.interface";
 import { RoleAttributes } from "../../database/models/role.model";
 import { Sequelize, Transaction } from "sequelize";
 import { GroupRoleAttributes } from "../../database/models/grouprole.model";
+import { UserAttributes } from "../../database/models/user.model";
+import { UserGroupAttributes } from "../../database/models/usergroup.model";
 
 export class GroupService {
   public async getAllGroups(query: DefaultQueryParams) {
@@ -81,9 +83,12 @@ export class GroupService {
     try {
       const newGroup = await db.Group.create(group, { transaction });
 
-      const { roles } = group;
+      const { roles, users } = group;
       if (roles && roles.length > 0) {
         await this.insertGroupRole(newGroup.id, roles, transaction);
+      }
+      if (users && users.length > 0) {
+        await this.insertGroupUser(newGroup.id, users, transaction);
       }
 
       await transaction.commit();
@@ -112,9 +117,13 @@ export class GroupService {
 
       await existingGroup.update(newGroup, { transaction });
 
-      const { roles } = newGroup;
+      const { roles, users } = newGroup;
       if (roles && roles.length > 0) {
         await this.insertGroupRole(existingGroup.id, roles, transaction);
+      }
+
+      if (users && users.length > 0) {
+        await this.insertGroupUser(existingGroup.id, users, transaction);
       }
 
       await transaction.commit();
@@ -143,6 +152,16 @@ export class GroupService {
     });
   }
 
+  public async addUserToGroup(groupId: number, userId: number) {
+    await db.UserGroup.create({ groupId, userId });
+  }
+
+  public async removeUserFromGroup(groupId: number, userId: number) {
+    await db.UserGroup.destroy({
+      where: { groupId, userId },
+    });
+  }
+
   public async getGroupRoles(groupId: number) {
     const groupRoles = await db.GroupRole.findAll({
       where: { groupId },
@@ -164,26 +183,55 @@ export class GroupService {
     transaction: Transaction
   ) {
     if (!groupId) return;
-  
+
     const existingGroupRoles = await db.GroupRole.findAll({
       where: { groupId },
       transaction,
     });
-  
+
     const newRoles = roles.filter(
       (role) =>
         !existingGroupRoles.some(
-          (existingRole:GroupRoleAttributes) => existingRole.roleId === role.id
+          (existingRole: GroupRoleAttributes) => existingRole.roleId === role.id
         )
     );
-  
+
     const groupRoleIds = newRoles.map((role) => ({
       groupId,
       roleId: role.id,
     }));
-  
+
     if (groupRoleIds.length > 0) {
       await db.GroupRole.bulkCreate(groupRoleIds, { transaction });
+    }
+  }
+
+  private async insertGroupUser(
+    groupId: number,
+    users: UserAttributes[],
+    transaction: Transaction
+  ) {
+    if (!groupId) return;
+
+    const existingGroupUsers = await db.UserGroup.findAll({
+      where: { groupId },
+      transaction,
+    });
+
+    const newUsers = users.filter(
+      (user) =>
+        !existingGroupUsers.some(
+          (existingUser: UserGroupAttributes) => existingUser.userId === user.id
+        )
+    );
+
+    const groupUserIds = newUsers.map((user) => ({
+      groupId,
+      userId: user.id,
+    }));
+
+    if (groupUserIds.length > 0) {
+      await db.UserGroup.bulkCreate(groupUserIds, { transaction });
     }
   }
 }
