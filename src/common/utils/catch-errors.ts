@@ -86,6 +86,16 @@ export class ModuleDeleteNotAllowedException extends AppError {
   }
 }
 
+export class BranchDeleteNotAllowedException extends AppError {
+  constructor(errorCode?: ErrorCode) {
+    super(
+      "Branch cannot be deleted because it is currently in use.",
+      HTTPSTATUS.BAD_REQUEST,
+      errorCode || ErrorCode.BRANCH_DELETE_NOT_ALLOWED
+    );
+  }
+}
+
 export class SequelizeUniqueConstraintException extends AppError {
   constructor(error: UniqueConstraintError, errorCode?: ErrorCode) {
     const field = Object.keys(error.fields)[0];

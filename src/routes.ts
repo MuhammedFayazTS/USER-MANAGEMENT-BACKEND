@@ -9,6 +9,8 @@ import permissionRoutes from "./modules/permission/permisiion.routes";
 import moduleRoutes from "./modules/module/module.routes";
 import userRoutes from "./modules/user/user.routes";
 import groupRoutes from "./modules/group/group.routes";
+import countryRoutes from "./modules/country/country.routes";
+import branchRoutes from "./modules/branch/branch.routes";
 
 export const routes = (app: express.Application) => {
   const BASE_PATH = config.BASE_PATH;
@@ -21,4 +23,6 @@ export const routes = (app: express.Application) => {
   app.use(`${BASE_PATH}/modules`, authenticateJwt, moduleRoutes);
   app.use(`${BASE_PATH}/users`, authenticateJwt, userRoutes);
   app.use(`${BASE_PATH}/groups`, authenticateJwt, groupRoutes);
+  app.use(`${BASE_PATH}/countries`, authenticateJwt, countryRoutes);
+  app.use(`${BASE_PATH}/branches`, authenticateJwt, branchRoutes);
 };
