@@ -13,6 +13,15 @@ export type Models =
   | "UserGroup"
   | "Module" 
   | "ModulePermission" 
+  | "Room" 
+  | "RoomType" 
+  | "RoomStatus" 
+  | "Customer" 
+  | "CustomerIdProof" 
+  | "Booking" 
+  | "Payment" 
+  | "PaymentMode" 
+  | "Country" 
   ;
 
 type ModelProps = {

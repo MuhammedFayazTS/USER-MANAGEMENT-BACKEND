@@ -38,7 +38,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
         foreignKey: "createdBy",
         as: "createdByUser",
       });
-      Payment.belongsTo(models.PaymentModes, {
+      Payment.belongsTo(models.PaymentMode, {
         foreignKey: "paymentModeId",
         as: "paymentMode",
       });
