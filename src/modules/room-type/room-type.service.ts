@@ -1,5 +1,8 @@
 import db from "../../database/database";
-import { DeleteNotAllowedException, NotFoundException } from "../../common/utils/catch-errors";
+import {
+  DeleteNotAllowedException,
+  NotFoundException,
+} from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { DefaultQueryParams } from "../../common/interfaces/query.interface";
 import { FilterBuilder } from "../../common/utils/filter-builder";
@@ -14,12 +17,7 @@ export class RoomTypeService {
 
     const roomTypes = await db.RoomType.findAndCountAll({
       where,
-      attributes: attributes || [
-        "id",
-        "name",
-        "price",
-        "description",
-      ],
+      attributes: attributes || ["id", "name", "price", "description"],
       include: [
         {
           model: db.Branch,
@@ -88,14 +86,13 @@ export class RoomTypeService {
 
   public async deleteRoomType(id: number | string) {
     const usage = await this.checkRoomTypeUsage(id);
-        if (usage) {
-          throw new DeleteNotAllowedException();
-        }
+    if (usage) {
+      throw new DeleteNotAllowedException();
+    }
     return await db.RoomType.destroy({ where: { id } });
   }
 
   private async checkRoomTypeUsage(typeId: number | string): Promise<boolean> {
-
     const roomCount = await db.Room.count({
       where: { typeId },
     });
