@@ -96,6 +96,16 @@ export class BranchDeleteNotAllowedException extends AppError {
   }
 }
 
+export class DeleteNotAllowedException extends AppError {
+  constructor(errorCode?: ErrorCode) {
+    super(
+      "Selected item cannot be deleted because it is currently in use.",
+      HTTPSTATUS.BAD_REQUEST,
+      errorCode || ErrorCode.DELETE_NOT_ALLOWED
+    );
+  }
+}
+
 export class SequelizeUniqueConstraintException extends AppError {
   constructor(error: UniqueConstraintError, errorCode?: ErrorCode) {
     const field = Object.keys(error.fields)[0];
