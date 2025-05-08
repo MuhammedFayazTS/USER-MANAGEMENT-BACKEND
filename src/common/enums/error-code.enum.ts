@@ -49,6 +49,8 @@ const enum ErrorCode {
 
   // ROOM
   ROOM_NOT_FOUND = "ROOM_NOT_FOUND",
+
+  CUSTOMER_NOT_FOUND = "CUSTOMER_NOT_FOUND",
   
   // db validation
   DELETE_NOT_ALLOWED = "DELETE_NOT_ALLOWED",

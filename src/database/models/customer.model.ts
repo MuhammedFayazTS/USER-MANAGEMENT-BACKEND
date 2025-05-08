@@ -9,7 +9,7 @@ export interface CustomerAttributes {
   phone?: string;
   address?: string;
   city?: string;
-  country?: string;
+  countryId?: number;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -24,7 +24,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     phone?: string;
     address?: string;
     city?: string;
-    country?: string;
+    countryId?: number;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date;
@@ -32,7 +32,10 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     static associate(models: any) {
       Customer.hasMany(models.CustomerIdProof, {
         foreignKey: "customerId",
-        as: "idProofs"
+        as: "idProofs",
+      });
+      Customer.belongsTo(models.Country, {
+        foreignKey: "countryId",
       });
     }
   }
@@ -41,14 +44,14 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     {
       firstName: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       lastName: DataTypes.STRING,
       email: DataTypes.STRING,
       phone: DataTypes.STRING,
       address: DataTypes.STRING,
       city: DataTypes.STRING,
-      country: DataTypes.STRING
+      countryId: DataTypes.STRING,
     },
     {
       sequelize,

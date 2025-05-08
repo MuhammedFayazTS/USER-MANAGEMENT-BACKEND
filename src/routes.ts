@@ -14,6 +14,7 @@ import branchRoutes from "./modules/branch/branch.routes";
 import roomTypeRoutes from "./modules/room-type/room-type.routes";
 import roomStatusRoutes from "./modules/room-status/room-status.routes";
 import roomRoutes from "./modules/room/room.routes";
+import customerRoutes from "./modules/customer/customer.routes";
 
 export const routes = (app: express.Application) => {
   const BASE_PATH = config.BASE_PATH;
@@ -31,4 +32,5 @@ export const routes = (app: express.Application) => {
   app.use(`${BASE_PATH}/room-types`, authenticateJwt, roomTypeRoutes);
   app.use(`${BASE_PATH}/room-statuses`, authenticateJwt, roomStatusRoutes);
   app.use(`${BASE_PATH}/rooms`, authenticateJwt, roomRoutes);
+  app.use(`${BASE_PATH}/customers`, authenticateJwt, customerRoutes);
 };
