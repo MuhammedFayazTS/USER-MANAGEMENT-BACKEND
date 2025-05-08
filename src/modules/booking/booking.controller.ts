@@ -1,0 +1,106 @@
+import { Request, Response } from "express";
+import { asyncHandler } from "../../middleware/asyncHandler";
+import { BookingService } from "./booking.service";
+import { bookingSchema } from "../../common/validators/booking.validator";
+import { assertDefined } from "../../common/utils/common";
+import { HTTPSTATUS } from "../../config/http.config";
+
+export class BookingController {
+  constructor(private bookingService: BookingService) {}
+
+  public createBooking = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const bookingData = bookingSchema.parse(req.body);
+
+    assertDefined(userId, "User id is not defined");
+    const booking = await this.bookingService.createBooking(
+      bookingData,
+      userId
+    );
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Booking created successfully",
+      booking,
+    });
+  });
+
+  public checkInBooking = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const bookingId = req.params?.id;
+    assertDefined(bookingId, "Booking Id is not provided");
+    assertDefined(userId, "User id is not defined");
+
+    const booking = await this.bookingService.checkInBooking(
+      Number(bookingId),
+      userId
+    );
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Check In successfully",
+      booking,
+    });
+  });
+
+  public checkOutBooking = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const bookingId = req.params?.id;
+    assertDefined(bookingId, "Booking Id is not provided");
+    assertDefined(userId, "User id is not defined");
+
+    const booking = await this.bookingService.checkOutBooking(
+      Number(bookingId),
+      userId
+    );
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Check Out successfully",
+      booking,
+    });
+  });
+
+  public cancelBooking = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const bookingId = req.params?.id;
+    assertDefined(bookingId, "Booking Id is not provided");
+    assertDefined(userId, "User id is not defined");
+
+    const booking = await this.bookingService.cancelBooking(
+      Number(bookingId),
+      userId
+    );
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Booking canceled successfully",
+      booking,
+    });
+  });
+
+  public getOneBooking = asyncHandler(async (req: Request, res: Response) => {
+    const bookingId = req.params?.id;
+    assertDefined(bookingId, "Booking Id is not provided");
+    const booking = await this.bookingService.getOneBooking(Number(bookingId));
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Booking fetched successfully",
+      booking,
+    });
+  });
+
+  public getAllBookings = asyncHandler(async (req: Request, res: Response) => {
+    const booking = await this.bookingService.getAllBookings();
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Bookings fetched successfully",
+      booking,
+    });
+  });
+
+  public listBookingLogs = asyncHandler(async (req: Request, res: Response) => {
+    const bookingLogs = await this.bookingService.listBookingLogs();
+
+    return res.status(HTTPSTATUS.CREATED).json({
+      message: "Booking logs listed successfully",
+      bookingLogs,
+    });
+  });
+}

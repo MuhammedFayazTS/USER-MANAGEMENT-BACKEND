@@ -22,6 +22,7 @@ export type Models =
   | "Payment" 
   | "PaymentMode" 
   | "Country" 
+  | "BookingLog" 
   ;
 
 type ModelProps = {
