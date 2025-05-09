@@ -4,24 +4,62 @@ import { BookingService } from "./booking.service";
 import { bookingSchema } from "../../common/validators/booking.validator";
 import { assertDefined } from "../../common/utils/common";
 import { HTTPSTATUS } from "../../config/http.config";
+import { PaymentService } from "../payment/payment.service";
+import db from "../../database/database";
+import { updateAmountPaid } from "../../common/utils/payment";
 
 export class BookingController {
-  constructor(private bookingService: BookingService) {}
+  constructor(
+    private bookingService: BookingService,
+    private paymentService: PaymentService
+  ) {}
 
   public createBooking = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const bookingData = bookingSchema.parse(req.body);
-
     assertDefined(userId, "User id is not defined");
-    const booking = await this.bookingService.createBooking(
-      bookingData,
-      userId
-    );
 
-    return res.status(HTTPSTATUS.CREATED).json({
-      message: "Booking created successfully",
-      booking,
-    });
+    const bookingData = bookingSchema.parse(req.body);
+    const transaction = await db.createDBTransaction();
+
+    try {
+      let booking = await this.bookingService.createBooking(
+        bookingData,
+        userId,
+        transaction
+      );
+
+      const isPaymentInBooking =
+        bookingData.paymentAmount &&
+        bookingData.paymentAmount > 0 &&
+        bookingData.paymentModeId;
+
+      if (isPaymentInBooking) {
+        const payment = await this.paymentService.createPaymentFromBooking(
+          {
+            ...bookingData,
+            id: booking.id,
+          },
+          userId,
+          transaction
+        );
+
+        booking = await updateAmountPaid(
+          booking.id,
+          transaction,
+          payment?.amount
+        );
+      }
+
+      await transaction.commit();
+
+      return res.status(HTTPSTATUS.CREATED).json({
+        message: "Booking created successfully",
+        booking,
+      });
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   });
 
   public checkInBooking = asyncHandler(async (req: Request, res: Response) => {

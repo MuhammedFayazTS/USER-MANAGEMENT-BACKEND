@@ -23,4 +23,14 @@ export const bookingSchema = z.object({
   tax: z.number().nonnegative("Tax must be positive").nullable().optional(),
   notes: z.string().nullable().optional(),
   createdBy: z.number({ required_error: "Created by (user) is required" }),
+  paymentAmount: z
+    .number()
+    .nonnegative("Payment amount must be positive")
+    .optional(),
+  paymentModeId: z.number().optional(),
+  paymentType: z
+    .enum(["advance", "final", "refund", "other"])
+    .nullable()
+    .optional(),
+  paymentRemarks: z.string().nullable().optional(),
 });

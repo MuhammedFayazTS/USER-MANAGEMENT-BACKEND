@@ -1,12 +1,15 @@
-import { literal } from "sequelize";
+import { literal, Transaction } from "sequelize";
 import db from "../../database/database";
 import { BookingAttributes } from "../../database/models/booking.model";
 import { BookingActionType } from "../../database/models/bookinglog";
 
 export class BookingService {
-  public async createBooking(bookingData: BookingAttributes, userId: number) {
-    bookingData.createdBy = userId;
-    const booking = await db.Booking.create(bookingData);
+  public async createBooking(
+    bookingData: BookingAttributes,
+    userId: number,
+    transaction: Transaction
+  ) {
+    const booking = await db.Booking.create(bookingData, { transaction });
     if (!booking || !booking.id) {
       throw new Error("Error while booking");
     }
@@ -14,7 +17,8 @@ export class BookingService {
       booking.id,
       userId,
       bookingData.status,
-      0 //Replace with payment amount
+      bookingData.paymentAmount ?? 0,
+      transaction
     );
     return booking;
   }
@@ -202,15 +206,19 @@ export class BookingService {
     bookingId: number,
     userId: number,
     action: BookingActionType,
-    amountPaid: number
+    amountPaid: number,
+    transaction?: Transaction
   ) {
-    const bookingLog = await db.BookingLog.create({
-      bookingId,
-      userId,
-      action,
-      amountPaid,
-      transactionDate: new Date(),
-    });
+    const bookingLog = await db.BookingLog.create(
+      {
+        bookingId,
+        userId,
+        action,
+        amountPaid,
+        transactionDate: new Date(),
+      },
+      { transaction }
+    );
     return bookingLog;
   }
 }

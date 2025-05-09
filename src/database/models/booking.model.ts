@@ -1,7 +1,9 @@
 "use strict";
 import { Model, Sequelize } from "sequelize";
+import { PaymentType } from "../../common/utils/payment";
 
 export interface BookingAttributes {
+  id?: number;
   roomId: number;
   customerId: number;
   branchId: number;
@@ -11,11 +13,17 @@ export interface BookingAttributes {
   actualCheckOut?: Date | null;
   status: "booked" | "checked-in" | "checked-out" | "cancelled";
   totalAmount: number;
+  isRefunded?: boolean;
+  amountPaid?: number | null;
   discount?: number | null;
   tax?: number | null;
   netAmount: number;
   notes?: string | null;
   createdBy: number;
+  paymentType?: PaymentType | null;
+  paymentAmount?: number | null;
+  paymentModeId?: number | null;
+  paymentRemarks?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -33,6 +41,8 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
     actualCheckOut?: Date | null;
     status!: "booked" | "checked-in" | "checked-out" | "cancelled";
     totalAmount!: number;
+    isRefunded?: boolean;
+    amountPaid?: number | null;
     discount?: number | null;
     tax?: number | null;
     netAmount!: number;
@@ -80,10 +90,12 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
         allowNull: false,
       },
       totalAmount: DataTypes.DECIMAL(10, 2),
+      amountPaid: DataTypes.DECIMAL(10, 4),
       discount: DataTypes.DECIMAL(10, 2),
       tax: DataTypes.DECIMAL(10, 2),
       netAmount: DataTypes.DECIMAL(10, 2),
       notes: DataTypes.TEXT,
+      isRefunded: DataTypes.BOOLEAN,
       createdBy: DataTypes.INTEGER,
     },
     {
