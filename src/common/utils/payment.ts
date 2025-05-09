@@ -9,9 +9,9 @@ export function mapPaymentType(status: BookingStatus): PaymentType {
     case "booked":
       return "advance";
     case "checked-in":
-      return "final";
+      return "advance";
     case "checked-out":
-      return "other";
+      return "final";
     case "cancelled":
       return "refund";
     default:
@@ -41,10 +41,12 @@ export async function getAmountPaid(
 export async function updateAmountPaid(
   bookingId: number,
   transaction: Transaction,
-  lastTransactionAmount?: number
+  lastTransactionAmount?: number,
+  isRefunded?: boolean
 ) {
-  const amountPaid =
-    (await getAmountPaid(bookingId)) + +(lastTransactionAmount ?? 0);
+  const amountPaid = isRefunded
+    ? (await getAmountPaid(bookingId)) - +(lastTransactionAmount ?? 0)
+    : (await getAmountPaid(bookingId)) + +(lastTransactionAmount ?? 0);
   const booking = await db.Booking.findOne({
     where: { id: bookingId },
     transaction,
@@ -58,4 +60,21 @@ export async function updateAmountPaid(
   await booking.save({ transaction });
 
   return booking;
+}
+
+export async function validateFinalPayment(
+  bookingId: number,
+  paymentAmount: number,
+  netAmount: number,
+  transaction: Transaction
+): Promise<void> {
+  const existingAmountPaid = await getAmountPaid(bookingId, transaction);
+  const totalPaid = existingAmountPaid + paymentAmount;
+
+  if (totalPaid < netAmount) {
+    throw new Error("Booking payment is still due.");
+  }
+  if (totalPaid > netAmount) {
+    throw new Error("Payment exceeds the total net amount.");
+  }
 }

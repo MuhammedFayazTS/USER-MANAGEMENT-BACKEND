@@ -23,7 +23,12 @@ export class BookingService {
     return booking;
   }
 
-  public async checkInBooking(bookingId: number, userId: number) {
+  public async checkInBooking(
+    bookingId: number,
+    userId: number,
+    paymentAmount?: number,
+    transaction?: Transaction
+  ) {
     const booking = await db.Booking.findOne({ where: { id: bookingId } });
     if (!booking) throw new Error("Booking not found");
 
@@ -40,14 +45,20 @@ export class BookingService {
       booking.id,
       userId,
       "checked-in",
-      0 //Replace with payment amount
+      paymentAmount ?? 0,
+      transaction
     );
 
-    await booking.save();
+    await booking.save({ transaction });
     return booking;
   }
 
-  public async checkOutBooking(bookingId: number, userId: number) {
+  public async checkOutBooking(
+    bookingId: number,
+    userId: number,
+    paymentAmount?: number,
+    transaction?: Transaction
+  ) {
     const booking = await db.Booking.findOne({ where: { id: bookingId } });
     if (!booking) throw new Error("Booking not found");
 
@@ -64,14 +75,20 @@ export class BookingService {
       booking.id,
       userId,
       "checked-out",
-      0 //Replace with payment amount
+      paymentAmount ?? 0,
+      transaction
     );
 
-    await booking.save();
+    await booking.save({ transaction });
     return booking;
   }
 
-  public async cancelBooking(bookingId: number, userId: number) {
+  public async cancelBooking(
+    bookingId: number,
+    userId: number,
+    paymentAmount?: number,
+    transaction?: Transaction
+  ) {
     const booking = await db.Booking.findOne({ where: { id: bookingId } });
     if (!booking) throw new Error("Booking not found");
 
@@ -83,14 +100,19 @@ export class BookingService {
     booking.updatedAt = new Date();
     booking.createdBy = userId;
 
+    if (paymentAmount && paymentAmount > 0) {
+      booking.isRefunded = true;
+    }
+
     await this.createBookingLog(
       booking.id,
       userId,
       "cancelled",
-      0 // Replace with refund amount if needed
+      paymentAmount ?? 0,
+      transaction
     );
 
-    await booking.save();
+    await booking.save({ transaction });
     return booking;
   }
 
