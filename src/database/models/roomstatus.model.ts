@@ -25,6 +25,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
   RoomStatus.init(
     {
       name: DataTypes.STRING,
+      description: DataTypes.STRING,
     },
     {
       sequelize,

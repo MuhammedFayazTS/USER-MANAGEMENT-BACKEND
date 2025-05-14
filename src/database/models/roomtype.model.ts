@@ -34,6 +34,7 @@ module.exports = (sequelize: Sequelize, DataTypes: any) => {
       name: DataTypes.STRING,
       branchId: DataTypes.INTEGER,
       price: DataTypes.NUMERIC,
+      description: DataTypes.STRING,
     },
     {
       sequelize,
