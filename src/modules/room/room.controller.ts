@@ -26,20 +26,35 @@ export class RoomController {
     });
   });
 
-  public getRoomsForSelect = asyncHandler(async (_req: Request, res: Response) => {
-    const rooms = await this.roomService.getRoomsForSelect();
+  public getRoomsForSelect = asyncHandler(
+    async (_req: Request, res: Response) => {
+      const rooms = await this.roomService.getRoomsForSelect();
 
-    return res.status(HTTPSTATUS.OK).json({
-      message: "Rooms for select fetched",
-      rooms,
-    });
-  });
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Rooms for select fetched",
+        rooms,
+      });
+    }
+  );
+
+  public getRoomsByBookingStatus = asyncHandler(
+    async (_req: Request, res: Response) => {
+      const rooms = await this.roomService.getRoomsByBookingStatus();
+
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Rooms for select fetched",
+        rooms,
+      });
+    }
+  );
 
   public createRoom = asyncHandler(async (req: Request, res: Response) => {
     const data = roomSchema.parse(req.body);
 
     const room = await this.roomService.createRoom(data);
-    return res.status(HTTPSTATUS.CREATED).json({ message: "Room created", room });
+    return res
+      .status(HTTPSTATUS.CREATED)
+      .json({ message: "Room created", room });
   });
 
   public updateRoom = asyncHandler(async (req: Request, res: Response) => {

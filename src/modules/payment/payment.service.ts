@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Sequelize, Transaction } from "sequelize";
 import db from "../../database/database";
 import { BookingAttributes } from "../../database/models/booking.model";
 import { PaymentAttributes } from "../../database/models/payment.model";
@@ -45,5 +45,15 @@ export class PaymentService {
     }
 
     return payment;
+  }
+
+  public async getPaymentModesForSelect() {
+    return await db.PaymentMode.findAll({
+      attributes: [
+        [Sequelize.literal('"PaymentMode"."id"'), "value"],
+        [Sequelize.literal('"PaymentMode"."name"'), "label"],
+      ],
+      order: [["name", "ASC"]],
+    });
   }
 }

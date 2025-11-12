@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { bookingController } from "./booking.module";
+import { attachUserId } from "../../middleware/attach-user-id";
 
 const bookingRoutes = Router();
 
-bookingRoutes.post("/", bookingController.createBooking);
+bookingRoutes.post("/",attachUserId, bookingController.createBooking);
 
 bookingRoutes.post("/:id/check-in", bookingController.checkInBooking);
 

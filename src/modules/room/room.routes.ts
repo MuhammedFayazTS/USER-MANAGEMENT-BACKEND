@@ -5,6 +5,7 @@ const roomRoutes = Router();
 
 roomRoutes.get("/", roomController.getAllRooms);
 roomRoutes.get("/select", roomController.getRoomsForSelect);
+roomRoutes.get("/select/status", roomController.getRoomsByBookingStatus);
 roomRoutes.get("/:id", roomController.getRoom);
 roomRoutes.post("/", roomController.createRoom);
 roomRoutes.put("/:id", roomController.updateRoom);
